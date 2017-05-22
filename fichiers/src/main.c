@@ -40,6 +40,10 @@ int main (int argc, char **argv)
 
   graphics_init (&argc, argv);
 
+  if (init [version]) {
+    init[version]();
+  }
+  
   if (opencl_used [version]) {
 
     ocl_init ();

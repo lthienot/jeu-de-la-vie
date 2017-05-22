@@ -11,6 +11,7 @@ unsigned version = 0;
 
 void first_touch_v3 (void);
 void first_touch_v4 (void);
+void init_v2(void);
 
 unsigned compute_v0 (unsigned nb_iter);
 unsigned compute_v1 (unsigned nb_iter);
@@ -27,6 +28,16 @@ void_func_t first_touch [] = {
   first_touch_v4,
   NULL,
 };
+
+void_func_t init [] = {
+  NULL,
+  NULL,
+  init_v2,
+  NULL,
+  NULL,
+  NULL,
+};
+
 
 int_func_t compute [] = {
   compute_v0,
@@ -172,26 +183,28 @@ unsigned compute_v1 (unsigned nb_iter)
 
 ///////////////////////////// Version séquentielle tuilée optimisée
 
-int cellule[GRAIN][GRAIN];
-int cellule_next[GRAIN][GRAIN];
+int** next;
+int** courant;
 
-int** next = &cellule_next;
-int ** courant = &cellule;
-
-int init = 0;
+void init_v2()
+{
+  next = malloc(GRAIN*sizeof(int*));
+  courant = malloc(GRAIN*sizeof(int*));
+  for (int y = 0; y < GRAIN; y++)
+    {
+      next[y] = malloc(GRAIN*sizeof(int));
+      courant[y] = malloc(GRAIN*sizeof(int));
+      for (int z = 0; z < GRAIN; z++)
+	{
+	  courant[y][z] = 0;
+	  next[y][z] = 0;
+	}
+    }
+}
 
 unsigned compute_v2 (unsigned nb_iter) //ça marche pas !!!!
 {
   int tranche = DIM/GRAIN;
-
-  if(!init)
-    for (int y = 0; y < GRAIN; y++)
-      for (int z = 0; z < GRAIN; z++)
-	{
-	  init = 1;
-	  cellule[y][z] = 0;
-	  cellule_next[y][z] = 0;
-	}
   
   for (unsigned it = 1; it <= nb_iter; it ++)
     {
@@ -199,76 +212,77 @@ unsigned compute_v2 (unsigned nb_iter) //ça marche pas !!!!
       
       for (int i = 0; i < GRAIN; i++)
 	for (int j = 0; j < GRAIN; j++)
-	  if (courant[i][j] == 0)
-	    {
-	      if(i>0)
-		{
-		  next[i-1][j] = 0;
-		  if(j>0)
-		    next[i-1][j-1] = 0;
-		  if(j<GRAIN-1)
-		    next[i-1][j+1] = 0;
-		}
-	      if(i<GRAIN-1)
-		{
-		  next[i+1][j] = 0;
-		  if(j>0)
-		    next[i+1][j-1] = 0;
-		  if(j<GRAIN-1)
-		    next[i+1][j+1] = 0;
-		}
-	      if (j>0)
-		next[i][j-1] = 0;
-	      if(j<GRAIN-1)
-		next[i][j+1] = 0;
-
-
-	      int stop_tuile = 1;
-	      for(int iloc = i*tranche; iloc < (i+1)*tranche && iloc < DIM; iloc++)
-		for(int jloc = j*tranche; jloc < (j+1)*tranche && jloc < DIM; jloc++)
+	  {
+	    if (courant[i][j] == 0)
+	      {
+		if(i>0)
 		  {
-		    int count = 0;
-		    if(iloc>0 && jloc>0 && cur_img(iloc-1,jloc-1))
-		      count++;
-		    if(jloc>0 && cur_img(iloc,jloc-1))
-		      count++;
-		    if(iloc<DIM-1 && jloc>0 && cur_img(iloc+1,jloc-1))
-		      count++;
-		    if(iloc>0 && cur_img(iloc-1,jloc))
-		      count++;
-		    if(iloc<DIM-1 && cur_img(iloc+1,jloc) )
-		      count++;
-		    if(iloc>0 && jloc<DIM-1 && cur_img(iloc-1,jloc+1))
-		      count++;
-		    if(jloc<DIM-1 && cur_img(iloc,jloc+1))
-		      count++;
-		    if(iloc<DIM-1 && jloc<DIM-1 && cur_img(iloc+1,jloc+1) )
-		      count++;
-		    if (cur_img(iloc,jloc))
-		      if(count < 2 || count > 3)
-			next_img(iloc,jloc) = 0;
-		      else
-			next_img(iloc,jloc) = cur_img(iloc,jloc);
-		    else
-		      if (count != 3)
-			next_img(iloc,jloc) = 0;
-		      else
-			next_img(iloc,jloc) = couleur;
-		    if (cur_img(iloc,jloc) != next_img(iloc,jloc))
-		      {
-			stop_it = 0;
-			stop_tuile = 0;
-		      }
+		    next[i-1][j] = 0;
+		    if(j>0)
+		      next[i-1][j-1] = 0;
+		    if(j<GRAIN-1)
+		      next[i-1][j+1] = 0;
 		  }
-	      next[i][j] = stop_tuile;
-	      //printf("cellule : %d\n", stop_tuile);
-	    }
-      swap_images();
+		if(i<GRAIN-1)
+		  {
+		    next[i+1][j] = 0;
+		    if(j>0)
+		      next[i+1][j-1] = 0;
+		    if(j<GRAIN-1)
+		      next[i+1][j+1] = 0;
+		  }
+		if (j>0)
+		  next[i][j-1] = 0;
+		if(j<GRAIN-1)
+		  next[i][j+1] = 0;
 
-      int ***tmp;
-      *tmp = courant;
-      *courant = next;
-      *next = tmp; //cf sur google pr mettre correctement
+		int stop_tuile = 1;
+		for(int iloc = i*tranche; iloc < (i+1)*tranche && iloc < DIM; iloc++)
+		  for(int jloc = j*tranche; jloc < (j+1)*tranche && jloc < DIM; jloc++)
+		    {
+		      int count = 0;
+		      if(iloc>0 && jloc>0 && cur_img(iloc-1,jloc-1))
+			count++;
+		      if(jloc>0 && cur_img(iloc,jloc-1))
+			count++;
+		      if(iloc<DIM-1 && jloc>0 && cur_img(iloc+1,jloc-1))
+			count++;
+		      if(iloc>0 && cur_img(iloc-1,jloc))
+			count++;
+		      if(iloc<DIM-1 && cur_img(iloc+1,jloc) )
+			count++;
+		      if(iloc>0 && jloc<DIM-1 && cur_img(iloc-1,jloc+1))
+			count++;
+		      if(jloc<DIM-1 && cur_img(iloc,jloc+1))
+			count++;
+		      if(iloc<DIM-1 && jloc<DIM-1 && cur_img(iloc+1,jloc+1) )
+			count++;
+		      if (cur_img(iloc,jloc))
+			if(count < 2 || count > 3)
+			  next_img(iloc,jloc) = 0;
+			else
+			  next_img(iloc,jloc) = cur_img(iloc,jloc);
+		      else
+			if (count != 3)
+			  next_img(iloc,jloc) = 0;
+			else
+			  next_img(iloc,jloc) = couleur;
+		      if (cur_img(iloc,jloc) != next_img(iloc,jloc))
+			{
+			  stop_it = 0;
+			  stop_tuile = 0;
+			}
+		    }
+		next[i][j] = stop_tuile;
+	      }
+	  }
+      swap_images();
+      
+      int** tmp;
+      tmp = courant;
+      courant = next;
+      next = tmp; //cf sur google pr mettre correctement
+      
       
       if (stop_it)
 	return it;
