@@ -472,7 +472,7 @@ unsigned compute_v4(unsigned nb_iter)
 // Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
 unsigned compute_v5(unsigned nb_iter)
 {
-   int tranche = DIM/GRAIN;
+  int tranche = DIM/GRAIN;
   int stop_it;
   for (unsigned it = 1; it <= nb_iter; it ++)
     {
@@ -494,43 +494,43 @@ unsigned compute_v5(unsigned nb_iter)
 	      {
 
 		int stop_tuile = 1;
-		for(int iloc = i*tranche; iloc < (i+1)*tranche && iloc < DIM; iloc++)
-		  for(int jloc = j*tranche; jloc < (j+1)*tranche && jloc < DIM; jloc++)
-		    {
-		      int count = 0;
-		      if(iloc>0 && jloc>0 && cur_img(iloc-1,jloc-1))
-			count++;
-		      if(jloc>0 && cur_img(iloc,jloc-1))
-			count++;
-		      if(iloc<DIM-1 && jloc>0 && cur_img(iloc+1,jloc-1))
-			count++;
-		      if(iloc>0 && cur_img(iloc-1,jloc))
-			count++;
-		      if(iloc<DIM-1 && cur_img(iloc+1,jloc) )
-			count++;
-		      if(iloc>0 && jloc<DIM-1 && cur_img(iloc-1,jloc+1))
-			count++;
-		      if(jloc<DIM-1 && cur_img(iloc,jloc+1))
-			count++;
-		      if(iloc<DIM-1 && jloc<DIM-1 && cur_img(iloc+1,jloc+1) )
-			count++;
-		      if (cur_img(iloc,jloc))
-			if(count < 2 || count > 3)
-			  next_img(iloc,jloc) = 0;
-			else
-			  next_img(iloc,jloc) = cur_img(iloc,jloc);
-		      else
-			if (count != 3)
-			  next_img(iloc,jloc) = 0;
-			else
-			  next_img(iloc,jloc) = couleur;
-		      if (cur_img(iloc,jloc) != next_img(iloc,jloc))
-			{
-			  stop_it = 0;
-			  stop_tuile = 0;
-			}
-		    }
-		next[i][j] = stop_tuile;
+	      	for(int iloc = i*tranche; iloc < (i+1)*tranche && iloc < DIM; iloc++)
+	      	  for(int jloc = j*tranche; jloc < (j+1)*tranche && jloc < DIM; jloc++)
+	      	    {
+	      	      int count = 0;
+	      	      if(iloc>0 && jloc>0 && cur_img(iloc-1,jloc-1))
+	      		count++;
+	      	      if(jloc>0 && cur_img(iloc,jloc-1))
+	      		count++;
+	      	      if(iloc<DIM-1 && jloc>0 && cur_img(iloc+1,jloc-1))
+	      		count++;
+	      	      if(iloc>0 && cur_img(iloc-1,jloc))
+	      		count++;
+	      	      if(iloc<DIM-1 && cur_img(iloc+1,jloc) )
+	      		count++;
+	      	      if(iloc>0 && jloc<DIM-1 && cur_img(iloc-1,jloc+1))
+	      		count++;
+	      	      if(jloc<DIM-1 && cur_img(iloc,jloc+1))
+	      		count++;
+	      	      if(iloc<DIM-1 && jloc<DIM-1 && cur_img(iloc+1,jloc+1) )
+	      		count++;
+	      	      if (cur_img(iloc,jloc))
+	      		if(count < 2 || count > 3)
+	      		  next_img(iloc,jloc) = 0;
+	      		else
+	      		  next_img(iloc,jloc) = cur_img(iloc,jloc);
+	      	      else
+	      		if (count != 3)
+	      		  next_img(iloc,jloc) = 0;
+	      		else
+	      		  next_img(iloc,jloc) = couleur;
+	      	      if (cur_img(iloc,jloc) != next_img(iloc,jloc))
+	      		{
+	      		  stop_it = 0;
+	      		  stop_tuile = 0;
+	      		}
+	      	    }
+	      	next[i][j] = stop_tuile;
 	      
 	      }
 	  }
