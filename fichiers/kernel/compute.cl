@@ -23,7 +23,37 @@ __kernel void transpose (__global unsigned *in, __global unsigned *out)
   out [(x - xloc + yloc) * DIM + y - yloc + xloc] = tile [yloc][xloc];
 }
 
+__kernel void life_naif (__global unsigned* in, __global unsigned* out)
+{
+  int x = get_global_id(0);
+  int y = get_global_id(1);
 
+  int count = 0;
+
+  if (x > 0 && x < DIM - 1 && y > 0 && y < DIM - 1)
+  {
+  if(in[(y-1)*DIM+x-1])
+    count++;
+  if(in[(y-1)*DIM+x])
+    count++;
+  if(in[(y-1)*DIM+x+1])
+    count++;
+  if(in[y*DIM+x-1])
+    count++;
+  if(in[y*DIM+x+1])
+    count++;
+  if(in[(y+1)*DIM+x-1])
+    count++;
+  if(in[(y+1)*DIM+x])
+    count++;
+  if(in[(y+1)*DIM+x+1])
+    count++;
+  }
+  if ((in[y*DIM+x] && (count < 2 || count > 3)) || (in[y*DIM+x] == 0 && (count !=3)))
+    out[y*DIM+x] = 0;
+    else
+    out[y*DIM+x] = 0xFFFF00FF;
+}
 
 // NE PAS MODIFIER
 static unsigned color_mean (unsigned c1, unsigned c2)

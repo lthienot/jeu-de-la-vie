@@ -35,7 +35,7 @@ unsigned TILEX = 16;
 unsigned TILEY = 16;
 unsigned SIZE = 0;
 
-static char *kernel_name = "scrollup";
+static char *kernel_name = "transpose";
 
 cl_int err;
 cl_context context;

@@ -81,7 +81,7 @@ unsigned opencl_used [] = {
   0,
   0,
   0,
-  1,
+  1
 };
 
 int count_neighbours(int i, int j)
