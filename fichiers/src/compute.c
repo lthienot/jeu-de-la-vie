@@ -32,7 +32,7 @@ void_func_t first_touch [] = {
   first_touch_v3,
   first_touch_v3,
   first_touch_v3,
-  NULL
+  NULL,
 };
 
 void_func_t init [] = {
@@ -44,7 +44,7 @@ void_func_t init [] = {
   init_v2,
   NULL,
   init_v2,
-  NULL
+  NULL,
 };
 
 
@@ -57,7 +57,7 @@ int_func_t compute [] = {
   compute_v5,
   compute_v6,
   compute_v7,
-  compute_v8
+  compute_v8,
 };
 
 char *version_name [] = {
@@ -156,8 +156,8 @@ unsigned compute_v0 (unsigned nb_iter)
 
 ///////////////////////////// Version séquentielle tuilée
 
-#define TILE_NUMBER 32
-#define TILE_SIZE DIM/TILE_NUMBER
+#define TILE_SIZE 32
+#define TILE_NUMBER DIM/TILE_SIZE
 
 unsigned compute_v1 (unsigned nb_iter)
 {
@@ -471,6 +471,7 @@ unsigned compute_v6(unsigned nb_iter)
 	for (int i = 0; i < DIM; i+=TILE_SIZE)
 	  for (int j = 0; j < DIM; j+=TILE_SIZE)
 #pragma omp task firstprivate(i,j)
+	    {
 	    for(int iloc = i; iloc < i+TILE_SIZE && iloc < DIM; iloc++)
 	      for(int jloc = j; jloc < j+TILE_SIZE && jloc < DIM; jloc++)
 		{
@@ -485,6 +486,7 @@ unsigned compute_v6(unsigned nb_iter)
 		  if (current_img!=next_img(iloc,jloc))
 		    stop_it = 0;
 		}
+	    }
       }
 
       if (stop_it)
