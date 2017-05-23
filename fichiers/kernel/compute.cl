@@ -51,7 +51,7 @@ __kernel void life_naif (__global unsigned* in, __global unsigned* out)
   }
   if ((in[y*DIM+x] && (count < 2 || count > 3)) || (in[y*DIM+x] == 0 && (count !=3)))
     out[y*DIM+x] = 0;
-    else
+  else
     out[y*DIM+x] = 0xFFFF00FF;
 }
 
