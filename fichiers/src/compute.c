@@ -84,6 +84,28 @@ unsigned opencl_used [] = {
   1,
 };
 
+int count_neighbours(int i, int j)
+{
+  int count = 0;
+  if(i>0 && j>0 && cur_img(i-1,j-1))
+    count++;
+  if(j>0 && cur_img(i,j-1))
+    count++;
+  if(i<DIM-1 && j>0 && cur_img(i+1,j-1))
+    count++;
+  if(i>0 && cur_img(i-1,j))
+    count++;
+  if(i<DIM-1 && cur_img(i+1,j) )
+    count++;
+  if(i>0 && j<DIM-1 && cur_img(i-1,j+1))
+    count++;
+  if(j<DIM-1 && cur_img(i,j+1))
+    count++;
+  if(i<DIM-1 && j<DIM-1 && cur_img(i+1,j+1) )
+    count++;
+  return count;
+
+}
 ///////////////////////////// Version séquentielle simple
 
 
@@ -103,23 +125,7 @@ unsigned compute_v0 (unsigned nb_iter)
       for (int i = 0; i < DIM; i++)
 	for (int j = 0; j < DIM; j++)
 	  {
-	    int count = 0;
-	    if(i>0 && j>0 && cur_img(i-1,j-1))
-	      count++;
-	    if(j>0 && cur_img(i,j-1))
-	      count++;
-	    if(i<DIM-1 && j>0 && cur_img(i+1,j-1))
-	      count++;
-	    if(i>0 && cur_img(i-1,j))
-	      count++;
-	    if(i<DIM-1 && cur_img(i+1,j) )
-	      count++;
-	    if(i>0 && j<DIM-1 && cur_img(i-1,j+1))
-	      count++;
-	    if(j<DIM-1 && cur_img(i,j+1))
-	      count++;
-	    if(i<DIM-1 && j<DIM-1 && cur_img(i+1,j+1) )
-	      count++;
+	    int count = count_neighbours(i,j);
 	    if (cur_img(i,j))
 	      {
 		if(count < 2 || count > 3)
@@ -164,23 +170,7 @@ unsigned compute_v1 (unsigned nb_iter)
 	  for(int iloc = i*tranche; iloc < (i+1)*tranche && iloc < DIM; iloc++)
 	    for(int jloc = j*tranche; jloc < (j+1)*tranche && jloc < DIM; jloc++)
 	      {
-		int count = 0;
-		if(iloc>0 && jloc>0 && cur_img(iloc-1,jloc-1))
-		  count++;
-		if(jloc>0 && cur_img(iloc,jloc-1))
-		  count++;
-		if(iloc<DIM-1 && jloc>0 && cur_img(iloc+1,jloc-1))
-		  count++;
-		if(iloc>0 && cur_img(iloc-1,jloc))
-		  count++;
-		if(iloc<DIM-1 && cur_img(iloc+1,jloc) )
-		  count++;
-		if(iloc>0 && jloc<DIM-1 && cur_img(iloc-1,jloc+1))
-		  count++;
-		if(jloc<DIM-1 && cur_img(iloc,jloc+1))
-		  count++;
-		if(iloc<DIM-1 && jloc<DIM-1 && cur_img(iloc+1,jloc+1) )
-		  count++;
+		int count = count_neighbours(iloc,jloc);
 		if (cur_img(iloc,jloc))
 		  {
 		    if(count < 2 || count > 3)
@@ -257,23 +247,7 @@ unsigned compute_v2 (unsigned nb_iter) //ça marche pas !!!!
 		for(int iloc = i*tranche; iloc < (i+1)*tranche && iloc < DIM; iloc++)
 		  for(int jloc = j*tranche; jloc < (j+1)*tranche && jloc < DIM; jloc++)
 		    {
-		      int count = 0;
-		      if(iloc>0 && jloc>0 && cur_img(iloc-1,jloc-1))
-			count++;
-		      if(jloc>0 && cur_img(iloc,jloc-1))
-			count++;
-		      if(iloc<DIM-1 && jloc>0 && cur_img(iloc+1,jloc-1))
-			count++;
-		      if(iloc>0 && cur_img(iloc-1,jloc))
-			count++;
-		      if(iloc<DIM-1 && cur_img(iloc+1,jloc) )
-			count++;
-		      if(iloc>0 && jloc<DIM-1 && cur_img(iloc-1,jloc+1))
-			count++;
-		      if(jloc<DIM-1 && cur_img(iloc,jloc+1))
-			count++;
-		      if(iloc<DIM-1 && jloc<DIM-1 && cur_img(iloc+1,jloc+1) )
-			count++;
+		      int count = count_neighbours(iloc,jloc);
 		      if (cur_img(iloc,jloc))
 			{
 			  if(count < 2 || count > 3)
@@ -304,8 +278,7 @@ unsigned compute_v2 (unsigned nb_iter) //ça marche pas !!!!
       tmp = courant;
       courant = next;
       next = tmp; 
-      
-      
+       
       if (stop_it)
 	return it;
     }
@@ -342,23 +315,7 @@ unsigned compute_v3(unsigned nb_iter)
       for (int i = 0; i < DIM; i++)
 	for (int j = 0; j < DIM; j++)
 	  {
-	    int count = 0;
-	    if(i>0 && j>0 && cur_img(i-1,j-1))
-	      count++;
-	    if(j>0 && cur_img(i,j-1))
-	      count++;
-	    if(i<DIM-1 && j>0 && cur_img(i+1,j-1))
-	      count++;
-	    if(i>0 && cur_img(i-1,j))
-	      count++;
-	    if(i<DIM-1 && cur_img(i+1,j) )
-	      count++;
-	    if(i>0 && j<DIM-1 && cur_img(i-1,j+1))
-	      count++;
-	    if(j<DIM-1 && cur_img(i,j+1))
-	      count++;
-	    if(i<DIM-1 && j<DIM-1 && cur_img(i+1,j+1) )
-	      count++;
+	    int count = count_neighbours(i,j);
 	    if (cur_img(i,j))
 	      {
 		if(count < 2 || count > 3)
@@ -399,67 +356,12 @@ unsigned compute_v4(unsigned nb_iter)
     {
       int stop_it = 1;
 #pragma omp parallel for collapse(2)
-      /* #pragma omp parallel for collapse(4) */ /* version qui marche bien mais pas autant que le collapse 2 */
       for (int i = 0; i < GRAIN; i++)
 	for (int j = 0; j < GRAIN; j++)
-	  /* for(int iloc1 = 0; iloc1 < tranche; iloc1++) */
-	  /*   for(int jloc1 = 0; jloc1 < tranche; jloc1++) */
-	  /*     { */
-	  /* 	int iloc = i*tranche+iloc1; */
-	  /* 	int jloc = j*tranche+jloc1; */
-	  /* 	int count = 0; */
-	  /* 	if(iloc < DIM && jloc < DIM) */
-	  /* 	  { */
-	  /* 	    if(iloc>0 && jloc>0 && cur_img(iloc-1,jloc-1)) */
-	  /* 	      count++; */
-	  /* 	    if(jloc>0 && cur_img(iloc,jloc-1)) */
-	  /* 	      count++; */
-	  /* 	    if(iloc<DIM-1 && jloc>0 && cur_img(iloc+1,jloc-1)) */
-	  /* 	      count++; */
-	  /* 	    if(iloc>0 && cur_img(iloc-1,jloc)) */
-	  /* 	      count++; */
-	  /* 	    if(iloc<DIM-1 && cur_img(iloc+1,jloc) ) */
-	  /* 	      count++; */
-	  /* 	    if(iloc>0 && jloc<DIM-1 && cur_img(iloc-1,jloc+1)) */
-	  /* 	      count++; */
-	  /* 	    if(jloc<DIM-1 && cur_img(iloc,jloc+1)) */
-	  /* 	      count++; */
-	  /* 	    if(iloc<DIM-1 && jloc<DIM-1 && cur_img(iloc+1,jloc+1) ) */
-	  /* 	      count++; */
-	  /* 	    if (cur_img(iloc,jloc)) */
-	  /* 	      if(count < 2 || count > 3) */
-	  /* 		next_img(iloc,jloc) = 0; */
-	  /* 	      else */
-	  /* 		next_img(iloc,jloc) = cur_img(iloc,jloc); */
-	  /* 	    else */
-	  /* 	      if (count != 3) */
-	  /* 		next_img(iloc,jloc) = 0; */
-	  /* 	      else */
-	  /* 		next_img(iloc,jloc) = couleur; */
-	  /* 	    if (cur_img(iloc,jloc)!=next_img(iloc,jloc)) */
-	  /* 	      stop_it = 0; */
-	  /* 	  } */
-	  /*     } */
 	  for(int iloc = i*tranche; iloc < (i+1)*tranche && iloc < DIM; iloc++)
 	    for(int jloc = j*tranche; jloc < (j+1)*tranche && jloc < DIM; jloc++)
 	      {
-		int count = 0;
-		if(iloc>0 && jloc>0 && cur_img(iloc-1,jloc-1))
-	  	  count++;
-	  	if(jloc>0 && cur_img(iloc,jloc-1))
-	  	  count++;
-	  	if(iloc<DIM-1 && jloc>0 && cur_img(iloc+1,jloc-1))
-	  	  count++;
-	  	if(iloc>0 && cur_img(iloc-1,jloc))
-	  	  count++;
-	  	if(iloc<DIM-1 && cur_img(iloc+1,jloc) )
-	  	  count++;
-	  	if(iloc>0 && jloc<DIM-1 && cur_img(iloc-1,jloc+1))
-	  	  count++;
-	  	if(jloc<DIM-1 && cur_img(iloc,jloc+1))
-	  	  count++;
-	  	if(iloc<DIM-1 && jloc<DIM-1 && cur_img(iloc+1,jloc+1) )
-	  	  count++;
+		int count = count_neighbours(iloc,jloc);
 	  	if (cur_img(iloc,jloc))
 		  {
 		    if(count < 2 || count > 3)
@@ -512,28 +414,11 @@ unsigned compute_v5(unsigned nb_iter)
 		  (j>0 && courant[i][j-1] == 0) ||
 		  (j<GRAIN-1 && courant[i][j+1] == 0))))
 	      {
-
 		int stop_tuile = 1;
 	      	for(int iloc = i*tranche; iloc < (i+1)*tranche && iloc < DIM; iloc++)
 	      	  for(int jloc = j*tranche; jloc < (j+1)*tranche && jloc < DIM; jloc++)
 	      	    {
-	      	      int count = 0;
-	      	      if(iloc>0 && jloc>0 && cur_img(iloc-1,jloc-1))
-	      		count++;
-	      	      if(jloc>0 && cur_img(iloc,jloc-1))
-	      		count++;
-	      	      if(iloc<DIM-1 && jloc>0 && cur_img(iloc+1,jloc-1))
-	      		count++;
-	      	      if(iloc>0 && cur_img(iloc-1,jloc))
-	      		count++;
-	      	      if(iloc<DIM-1 && cur_img(iloc+1,jloc) )
-	      		count++;
-	      	      if(iloc>0 && jloc<DIM-1 && cur_img(iloc-1,jloc+1))
-	      		count++;
-	      	      if(jloc<DIM-1 && cur_img(iloc,jloc+1))
-	      		count++;
-	      	      if(iloc<DIM-1 && jloc<DIM-1 && cur_img(iloc+1,jloc+1) )
-	      		count++;
+		      int count = count_neighbours(iloc,jloc);
 	      	      if (cur_img(iloc,jloc))
 			{
 			  if(count < 2 || count > 3)
