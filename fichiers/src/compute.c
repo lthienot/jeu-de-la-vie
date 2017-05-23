@@ -121,15 +121,19 @@ unsigned compute_v0 (unsigned nb_iter)
 	    if(i<DIM-1 && j<DIM-1 && cur_img(i+1,j+1) )
 	      count++;
 	    if (cur_img(i,j))
-	      if(count < 2 || count > 3)
-		next_img(i,j) = 0;
-	      else
-		next_img(i,j) = cur_img(i,j);
+	      {
+		if(count < 2 || count > 3)
+		  next_img(i,j) = 0;
+		else
+		  next_img(i,j) = cur_img(i,j);
+	      }
 	    else
-	      if (count != 3)
-		next_img(i,j) = 0;
-	      else
-		next_img(i,j) = couleur;
+	      {
+		if (count != 3)
+		  next_img(i,j) = 0;
+		else
+		  next_img(i,j) = couleur;
+	      }
 	    if (cur_img(i,j)!=next_img(i,j))
 	      stop_it = 0;
 	  }
@@ -178,15 +182,19 @@ unsigned compute_v1 (unsigned nb_iter)
 		if(iloc<DIM-1 && jloc<DIM-1 && cur_img(iloc+1,jloc+1) )
 		  count++;
 		if (cur_img(iloc,jloc))
-		  if(count < 2 || count > 3)
-		    next_img(iloc,jloc) = 0;
-		  else
-		    next_img(iloc,jloc) = cur_img(iloc,jloc);
+		  {
+		    if(count < 2 || count > 3)
+		      next_img(iloc,jloc) = 0;
+		    else
+		      next_img(iloc,jloc) = cur_img(iloc,jloc);
+		  }
 		else
-		  if (count != 3)
-		    next_img(iloc,jloc) = 0;
-		  else
-		    next_img(iloc,jloc) = couleur;
+		  {
+		    if (count != 3)
+		      next_img(iloc,jloc) = 0;
+		    else
+		      next_img(iloc,jloc) = couleur;
+		  }
 		if (cur_img(iloc,jloc)!=next_img(iloc,jloc))
 		  stop_it = 0;
 	      }
@@ -267,15 +275,19 @@ unsigned compute_v2 (unsigned nb_iter) //ça marche pas !!!!
 		      if(iloc<DIM-1 && jloc<DIM-1 && cur_img(iloc+1,jloc+1) )
 			count++;
 		      if (cur_img(iloc,jloc))
-			if(count < 2 || count > 3)
-			  next_img(iloc,jloc) = 0;
-			else
-			  next_img(iloc,jloc) = cur_img(iloc,jloc);
+			{
+			  if(count < 2 || count > 3)
+			    next_img(iloc,jloc) = 0;
+			  else
+			    next_img(iloc,jloc) = cur_img(iloc,jloc);
+			}
 		      else
-			if (count != 3)
-			  next_img(iloc,jloc) = 0;
-			else
-			  next_img(iloc,jloc) = couleur;
+			{
+			  if (count != 3)
+			    next_img(iloc,jloc) = 0;
+			  else
+			    next_img(iloc,jloc) = couleur;
+			}
 		      if (cur_img(iloc,jloc) != next_img(iloc,jloc))
 			{
 			  stop_it = 0;
@@ -348,15 +360,19 @@ unsigned compute_v3(unsigned nb_iter)
 	    if(i<DIM-1 && j<DIM-1 && cur_img(i+1,j+1) )
 	      count++;
 	    if (cur_img(i,j))
-	      if(count < 2 || count > 3)
-		next_img(i,j) = 0;
-	      else
-		next_img(i,j) = cur_img(i,j);
+	      {
+		if(count < 2 || count > 3)
+		  next_img(i,j) = 0;
+		else
+		  next_img(i,j) = cur_img(i,j);
+	      }
 	    else
-	      if (count != 3)
-		next_img(i,j) = 0;
-	      else
-		next_img(i,j) = couleur;
+	      {
+		if (count != 3)
+		  next_img(i,j) = 0;
+		else
+		  next_img(i,j) = couleur;
+	      }
 	    if (cur_img(i,j)!=next_img(i,j))
 	      stop_it = 0;
 	  }
@@ -445,15 +461,19 @@ unsigned compute_v4(unsigned nb_iter)
 	  	if(iloc<DIM-1 && jloc<DIM-1 && cur_img(iloc+1,jloc+1) )
 	  	  count++;
 	  	if (cur_img(iloc,jloc))
-	  	  if(count < 2 || count > 3)
-	  	    next_img(iloc,jloc) = 0;
-	  	  else
-	  	    next_img(iloc,jloc) = cur_img(iloc,jloc);
+		  {
+		    if(count < 2 || count > 3)
+		      next_img(iloc,jloc) = 0;
+		    else
+		      next_img(iloc,jloc) = cur_img(iloc,jloc);
+		  }
 	  	else
-	  	  if (count != 3)
-	  	    next_img(iloc,jloc) = 0;
-	  	  else
-	  	    next_img(iloc,jloc) = couleur;
+		  {
+		    if (count != 3)
+		      next_img(iloc,jloc) = 0;
+		    else
+		      next_img(iloc,jloc) = couleur;
+		  }
 	  	if (cur_img(iloc,jloc)!=next_img(iloc,jloc))
 	  	  stop_it = 0;
 	      }
@@ -515,15 +535,19 @@ unsigned compute_v5(unsigned nb_iter)
 	      	      if(iloc<DIM-1 && jloc<DIM-1 && cur_img(iloc+1,jloc+1) )
 	      		count++;
 	      	      if (cur_img(iloc,jloc))
-	      		if(count < 2 || count > 3)
-	      		  next_img(iloc,jloc) = 0;
-	      		else
-	      		  next_img(iloc,jloc) = cur_img(iloc,jloc);
+			{
+			  if(count < 2 || count > 3)
+			    next_img(iloc,jloc) = 0;
+			  else
+			    next_img(iloc,jloc) = cur_img(iloc,jloc);
+			}
 	      	      else
-	      		if (count != 3)
-	      		  next_img(iloc,jloc) = 0;
-	      		else
-	      		  next_img(iloc,jloc) = couleur;
+			{
+			  if (count != 3)
+			    next_img(iloc,jloc) = 0;
+			  else
+			    next_img(iloc,jloc) = couleur;
+			}
 	      	      if (cur_img(iloc,jloc) != next_img(iloc,jloc))
 	      		{
 	      		  stop_it = 0;
