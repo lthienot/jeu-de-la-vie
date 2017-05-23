@@ -156,19 +156,18 @@ unsigned compute_v0 (unsigned nb_iter)
 
 ///////////////////////////// Version séquentielle tuilée
 
-#define GRAIN 32
+#define TILE_NUMBER 32
+#define TILE_SIZE DIM/TILE_NUMBER
 
 unsigned compute_v1 (unsigned nb_iter)
 {
-  int tranche = DIM/GRAIN;
-
   for (unsigned it = 1; it <= nb_iter; it ++)
     {
       int stop_it = 1;
-      for (int i = 0; i < GRAIN; i++)
-	for (int j = 0; j < GRAIN; j++)
-	  for(int iloc = i*tranche; iloc < (i+1)*tranche && iloc < DIM; iloc++)
-	    for(int jloc = j*tranche; jloc < (j+1)*tranche && jloc < DIM; jloc++)
+      for (int i = 0; i < TILE_NUMBER; i++)
+	for (int j = 0; j < TILE_NUMBER; j++)
+	  for(int iloc = i*TILE_SIZE; iloc < (i+1)*TILE_SIZE && iloc < DIM; iloc++)
+	    for(int jloc = j*TILE_SIZE; jloc < (j+1)*TILE_SIZE && jloc < DIM; jloc++)
 	      {
 		int count = count_neighbours(iloc,jloc);
 		if (cur_img(iloc,jloc))
@@ -206,13 +205,13 @@ int** courant;
 
 void init_v2()
 {
-  next = malloc(GRAIN*sizeof(int*));
-  courant = malloc(GRAIN*sizeof(int*));
-  for (int y = 0; y < GRAIN; y++)
+  next = malloc(TILE_NUMBER*sizeof(int*));
+  courant = malloc(TILE_NUMBER*sizeof(int*));
+  for (int y = 0; y < TILE_NUMBER; y++)
     {
-      next[y] = malloc(GRAIN*sizeof(int));
-      courant[y] = malloc(GRAIN*sizeof(int));
-      for (int z = 0; z < GRAIN; z++)
+      next[y] = malloc(TILE_NUMBER*sizeof(int));
+      courant[y] = malloc(TILE_NUMBER*sizeof(int));
+      for (int z = 0; z < TILE_NUMBER; z++)
 	{
 	  courant[y][z] = 0;
 	  next[y][z] = 0;
@@ -222,30 +221,29 @@ void init_v2()
 
 unsigned compute_v2 (unsigned nb_iter) //ça marche pas !!!!
 {
-  int tranche = DIM/GRAIN;
   int stop_it;
   for (unsigned it = 1; it <= nb_iter; it ++)
     {
       stop_it = 1;
       
-      for (int i = 0; i < GRAIN; i++)
-	for (int j = 0; j < GRAIN; j++)
+      for (int i = 0; i < TILE_NUMBER; i++)
+	for (int j = 0; j < TILE_NUMBER; j++)
 	  {
 	    if (courant[i][j] == 0 ||
 		(courant[i][j] == 1 &&
 		 ((i>0 && courant[i-1][j] == 0) ||
 		  (i>0 && j>0 && courant[i-1][j-1] == 0) ||
-		  (i>0 && j<GRAIN-1 && courant[i-1][j+1] == 0) ||
-		  (i<GRAIN-1 && courant[i+1][j] == 0) ||
-		  (i<GRAIN-1 && j>0 && courant[i+1][j-1] == 0) ||
-		  (i<GRAIN-1 && j<GRAIN-1 && courant[i+1][j+1] == 0) ||
+		  (i>0 && j<TILE_NUMBER-1 && courant[i-1][j+1] == 0) ||
+		  (i<TILE_NUMBER-1 && courant[i+1][j] == 0) ||
+		  (i<TILE_NUMBER-1 && j>0 && courant[i+1][j-1] == 0) ||
+		  (i<TILE_NUMBER-1 && j<TILE_NUMBER-1 && courant[i+1][j+1] == 0) ||
 		  (j>0 && courant[i][j-1] == 0) ||
-		  (j<GRAIN-1 && courant[i][j+1] == 0))))
+		  (j<TILE_NUMBER-1 && courant[i][j+1] == 0))))
 	      {
 
 		int stop_tuile = 1;
-		for(int iloc = i*tranche; iloc < (i+1)*tranche && iloc < DIM; iloc++)
-		  for(int jloc = j*tranche; jloc < (j+1)*tranche && jloc < DIM; jloc++)
+		for(int iloc = i*TILE_SIZE; iloc < (i+1)*TILE_SIZE && iloc < DIM; iloc++)
+		  for(int jloc = j*TILE_SIZE; jloc < (j+1)*TILE_SIZE && jloc < DIM; jloc++)
 		    {
 		      int count = count_neighbours(iloc,jloc);
 		      if (cur_img(iloc,jloc))
@@ -350,16 +348,15 @@ unsigned compute_v3(unsigned nb_iter)
 // Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
 unsigned compute_v4(unsigned nb_iter)
 {
-  int tranche = DIM/GRAIN;
 
   for (unsigned it = 1; it <= nb_iter; it ++)
     {
       int stop_it = 1;
 #pragma omp parallel for collapse(2)
-      for (int i = 0; i < GRAIN; i++)
-	for (int j = 0; j < GRAIN; j++)
-	  for(int iloc = i*tranche; iloc < (i+1)*tranche && iloc < DIM; iloc++)
-	    for(int jloc = j*tranche; jloc < (j+1)*tranche && jloc < DIM; jloc++)
+      for (int i = 0; i < TILE_NUMBER; i++)
+	for (int j = 0; j < TILE_NUMBER; j++)
+	  for(int iloc = i*TILE_SIZE; iloc < (i+1)*TILE_SIZE && iloc < DIM; iloc++)
+	    for(int jloc = j*TILE_SIZE; jloc < (j+1)*TILE_SIZE && jloc < DIM; jloc++)
 	      {
 		int count = count_neighbours(iloc,jloc);
 	  	if (cur_img(iloc,jloc))
@@ -394,29 +391,28 @@ unsigned compute_v4(unsigned nb_iter)
 // Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
 unsigned compute_v5(unsigned nb_iter)
 {
-  int tranche = DIM/GRAIN;
   int stop_it;
   for (unsigned it = 1; it <= nb_iter; it ++)
     {
       stop_it = 1;
 #pragma omp parallel for collapse(2)
-      for (int i = 0; i < GRAIN; i++)
-	for (int j = 0; j < GRAIN; j++)
+      for (int i = 0; i < TILE_NUMBER; i++)
+	for (int j = 0; j < TILE_NUMBER; j++)
 	  {
 	    if (courant[i][j] == 0 ||
 		(courant[i][j] == 1 &&
 		 ((i>0 && courant[i-1][j] == 0) ||
 		  (i>0 && j>0 && courant[i-1][j-1] == 0) ||
-		  (i>0 && j<GRAIN-1 && courant[i-1][j+1] == 0) ||
-		  (i<GRAIN-1 && courant[i+1][j] == 0) ||
-		  (i<GRAIN-1 && j>0 && courant[i+1][j-1] == 0) ||
-		  (i<GRAIN-1 && j<GRAIN-1 && courant[i+1][j+1] == 0) ||
+		  (i>0 && j<TILE_NUMBER-1 && courant[i-1][j+1] == 0) ||
+		  (i<TILE_NUMBER-1 && courant[i+1][j] == 0) ||
+		  (i<TILE_NUMBER-1 && j>0 && courant[i+1][j-1] == 0) ||
+		  (i<TILE_NUMBER-1 && j<TILE_NUMBER-1 && courant[i+1][j+1] == 0) ||
 		  (j>0 && courant[i][j-1] == 0) ||
-		  (j<GRAIN-1 && courant[i][j+1] == 0))))
+		  (j<TILE_NUMBER-1 && courant[i][j+1] == 0))))
 	      {
 		int stop_tuile = 1;
-	      	for(int iloc = i*tranche; iloc < (i+1)*tranche && iloc < DIM; iloc++)
-	      	  for(int jloc = j*tranche; jloc < (j+1)*tranche && jloc < DIM; jloc++)
+	      	for(int iloc = i*TILE_SIZE; iloc < (i+1)*TILE_SIZE && iloc < DIM; iloc++)
+	      	  for(int jloc = j*TILE_SIZE; jloc < (j+1)*TILE_SIZE && jloc < DIM; jloc++)
 	      	    {
 		      int count = count_neighbours(iloc,jloc);
 	      	      if (cur_img(iloc,jloc))
@@ -465,49 +461,35 @@ unsigned compute_v5(unsigned nb_iter)
 // Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
 unsigned compute_v6(unsigned nb_iter)
 {
-  int tranche = DIM/GRAIN;
 
   for (unsigned it = 1; it <= nb_iter; it ++)
     {
       int stop_it = 1;
-#pragma omp parallel //shared(stop_it)
+#pragma omp parallel shared(stop_it)
       {
 #pragma omp single //nowait
-	{
-	  for (int i = 0; i < GRAIN; i++)
-	    for (int j = 0; j < GRAIN; j++)
-#pragma omp task firstprivate(i,j) //untied
-	      {	    
-		for(int iloc = i*tranche; iloc < (i+1)*tranche && iloc < DIM; iloc++)
-		  for(int jloc = j*tranche; jloc < (j+1)*tranche && jloc < DIM; jloc++)
-		    {
-		      int count;
-		      count = count_neighbours(iloc,jloc);
-		      if (cur_img(iloc,jloc))
-			{
+	for (int i = 0; i < DIM; i+=TILE_SIZE)
+	  for (int j = 0; j < DIM; j+=TILE_SIZE)
+#pragma omp task firstprivate(i,j)
+	    for(int iloc = i; iloc < i+TILE_SIZE && iloc < DIM; iloc++)
+	      for(int jloc = j; jloc < j+TILE_SIZE && jloc < DIM; jloc++)
+		{
+		  int count;
+		  count = count_neighbours(iloc,jloc);
+		  int current_img = cur_img(iloc,jloc);
+		  if ((current_img && (count < 2 || count > 3)) || (current_img == 0 && (count != 3)))
+		    next_img(iloc,jloc) = 0;
+		  else
+		    next_img(iloc,jloc) = couleur;
+		
+		  if (current_img!=next_img(iloc,jloc))
+		    stop_it = 0;
+		}
+      }
 
-			  if(count < 2 || count > 3)
-			    next_img(iloc,jloc) = 0;
-			  else
-			    next_img(iloc,jloc) = cur_img(iloc,jloc);
-			}
-		      else
-			{
-			  if (count != 3)
-			    next_img(iloc,jloc) = 0;
-			  else
-			    next_img(iloc,jloc) = couleur;
-			}
-		      
-		      if (cur_img(iloc,jloc)!=next_img(iloc,jloc))
-			stop_it = 0;
-		    }
-	      }
-	}
-	         }
-      swap_images();
       if (stop_it)
 	return it;
+      swap_images();
     }
   return 0; // on ne s'arrête jamais
 }
@@ -519,30 +501,31 @@ unsigned compute_v6(unsigned nb_iter)
 // Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
 unsigned compute_v7(unsigned nb_iter)
 {
-  int tranche = DIM/GRAIN;
   int stop_it;
   for (unsigned it = 1; it <= nb_iter; it ++)
     {
       stop_it = 1;
-      
-      for (int i = 0; i < GRAIN; i++)
-	for (int j = 0; j < GRAIN; j++)
+#pragma omp parallel shared(stop_it)
+      {
+#pragma omp single
+      for (int i = 0; i < TILE_NUMBER; i++)
+	for (int j = 0; j < TILE_NUMBER; j++)
 	  {
 	    if (courant[i][j] == 0 ||
 		(courant[i][j] == 1 &&
 		 ((i>0 && courant[i-1][j] == 0) ||
 		  (i>0 && j>0 && courant[i-1][j-1] == 0) ||
-		  (i>0 && j<GRAIN-1 && courant[i-1][j+1] == 0) ||
-		  (i<GRAIN-1 && courant[i+1][j] == 0) ||
-		  (i<GRAIN-1 && j>0 && courant[i+1][j-1] == 0) ||
-		  (i<GRAIN-1 && j<GRAIN-1 && courant[i+1][j+1] == 0) ||
+		  (i>0 && j<TILE_NUMBER-1 && courant[i-1][j+1] == 0) ||
+		  (i<TILE_NUMBER-1 && courant[i+1][j] == 0) ||
+		  (i<TILE_NUMBER-1 && j>0 && courant[i+1][j-1] == 0) ||
+		  (i<TILE_NUMBER-1 && j<TILE_NUMBER-1 && courant[i+1][j+1] == 0) ||
 		  (j>0 && courant[i][j-1] == 0) ||
-		  (j<GRAIN-1 && courant[i][j+1] == 0))))
+		  (j<TILE_NUMBER-1 && courant[i][j+1] == 0))))
 	      {
-
 		int stop_tuile = 1;
-		for(int iloc = i*tranche; iloc < (i+1)*tranche && iloc < DIM; iloc++)
-		  for(int jloc = j*tranche; jloc < (j+1)*tranche && jloc < DIM; jloc++)
+#pragma omp task firstprivate(i,j,stop_tuile)
+		for(int iloc = i*TILE_SIZE; iloc < (i+1)*TILE_SIZE && iloc < DIM; iloc++)
+		  for(int jloc = j*TILE_SIZE; jloc < (j+1)*TILE_SIZE && jloc < DIM; jloc++)
 		    {
 		      int count = count_neighbours(iloc,jloc);
 		      if (cur_img(iloc,jloc))
@@ -569,15 +552,16 @@ unsigned compute_v7(unsigned nb_iter)
 	      
 	      }
 	  }
+      }      
+      if (stop_it)
+	return it;
+
       swap_images();
-  
+      
       int** tmp;
       tmp = courant;
       courant = next;
       next = tmp; 
-       
-      if (stop_it)
-	return it;
     }
   return 0; // on ne s'arrête jamais
 }
