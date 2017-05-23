@@ -43,7 +43,7 @@ void_func_t init [] = {
   NULL,
   init_v2,
   NULL,
-  NULL,
+  init_v2,
   NULL
 };
 
@@ -465,6 +465,50 @@ unsigned compute_v5(unsigned nb_iter)
 // Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
 unsigned compute_v6(unsigned nb_iter)
 {
+  int tranche = DIM/GRAIN;
+
+  for (unsigned it = 1; it <= nb_iter; it ++)
+    {
+      int stop_it = 1;
+#pragma omp parallel //shared(stop_it)
+      {
+#pragma omp single //nowait
+	{
+	  for (int i = 0; i < GRAIN; i++)
+	    for (int j = 0; j < GRAIN; j++)
+#pragma omp task firstprivate(i,j) //untied
+	      {	    
+		for(int iloc = i*tranche; iloc < (i+1)*tranche && iloc < DIM; iloc++)
+		  for(int jloc = j*tranche; jloc < (j+1)*tranche && jloc < DIM; jloc++)
+		    {
+		      int count;
+		      count = count_neighbours(iloc,jloc);
+		      if (cur_img(iloc,jloc))
+			{
+
+			  if(count < 2 || count > 3)
+			    next_img(iloc,jloc) = 0;
+			  else
+			    next_img(iloc,jloc) = cur_img(iloc,jloc);
+			}
+		      else
+			{
+			  if (count != 3)
+			    next_img(iloc,jloc) = 0;
+			  else
+			    next_img(iloc,jloc) = couleur;
+			}
+		      
+		      if (cur_img(iloc,jloc)!=next_img(iloc,jloc))
+			stop_it = 0;
+		    }
+	      }
+	}
+	         }
+      swap_images();
+      if (stop_it)
+	return it;
+    }
   return 0; // on ne s'arrête jamais
 }
 
@@ -475,6 +519,66 @@ unsigned compute_v6(unsigned nb_iter)
 // Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
 unsigned compute_v7(unsigned nb_iter)
 {
+  int tranche = DIM/GRAIN;
+  int stop_it;
+  for (unsigned it = 1; it <= nb_iter; it ++)
+    {
+      stop_it = 1;
+      
+      for (int i = 0; i < GRAIN; i++)
+	for (int j = 0; j < GRAIN; j++)
+	  {
+	    if (courant[i][j] == 0 ||
+		(courant[i][j] == 1 &&
+		 ((i>0 && courant[i-1][j] == 0) ||
+		  (i>0 && j>0 && courant[i-1][j-1] == 0) ||
+		  (i>0 && j<GRAIN-1 && courant[i-1][j+1] == 0) ||
+		  (i<GRAIN-1 && courant[i+1][j] == 0) ||
+		  (i<GRAIN-1 && j>0 && courant[i+1][j-1] == 0) ||
+		  (i<GRAIN-1 && j<GRAIN-1 && courant[i+1][j+1] == 0) ||
+		  (j>0 && courant[i][j-1] == 0) ||
+		  (j<GRAIN-1 && courant[i][j+1] == 0))))
+	      {
+
+		int stop_tuile = 1;
+		for(int iloc = i*tranche; iloc < (i+1)*tranche && iloc < DIM; iloc++)
+		  for(int jloc = j*tranche; jloc < (j+1)*tranche && jloc < DIM; jloc++)
+		    {
+		      int count = count_neighbours(iloc,jloc);
+		      if (cur_img(iloc,jloc))
+			{
+			  if(count < 2 || count > 3)
+			    next_img(iloc,jloc) = 0;
+			  else
+			    next_img(iloc,jloc) = cur_img(iloc,jloc);
+			}
+		      else
+			{
+			  if (count != 3)
+			    next_img(iloc,jloc) = 0;
+			  else
+			    next_img(iloc,jloc) = couleur;
+			}
+		      if (cur_img(iloc,jloc) != next_img(iloc,jloc))
+			{
+			  stop_it = 0;
+			  stop_tuile = 0;
+			}
+		    }
+		next[i][j] = stop_tuile;
+	      
+	      }
+	  }
+      swap_images();
+  
+      int** tmp;
+      tmp = courant;
+      courant = next;
+      next = tmp; 
+       
+      if (stop_it)
+	return it;
+    }
   return 0; // on ne s'arrête jamais
 }
 
