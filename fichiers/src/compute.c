@@ -133,7 +133,7 @@ unsigned compute_v0 (unsigned nb_iter)
   /* } */
   for (unsigned it = 1; it <= nb_iter; it ++)
     {
-      int stop_it = 1;
+      int img_stable = 1;
       for (int i = 0; i < DIM; i++)
 	for (int j = 0; j < DIM; j++)
 	  {
@@ -144,11 +144,11 @@ unsigned compute_v0 (unsigned nb_iter)
 	    else
 	      next_img(i,j) = couleur;
 	    if (current_img != next_img(i,j))
-	      stop_it = 0;
+	      img_stable = 0;
 	  }
       swap_images();
 
-      if (stop_it)
+      if (img_stable)
 	return it;
     }
   // retourne le nombre d'étapes nécessaires à la
@@ -166,7 +166,7 @@ unsigned compute_v1 (unsigned nb_iter)
 {
   for (unsigned it = 1; it <= nb_iter; it ++)
     {
-      int stop_it = 1;
+      int img_stable = 1;
       for (int i = 0; i < TILE_NUMBER; i++)
 	for (int j = 0; j < TILE_NUMBER; j++)
 	  for(int iloc = i*TILE_SIZE; iloc < (i+1)*TILE_SIZE && iloc < DIM; iloc++)
@@ -179,10 +179,10 @@ unsigned compute_v1 (unsigned nb_iter)
 		else
 		  next_img(iloc,jloc) = couleur;
 		if (current_img != next_img(iloc,jloc))
-		  stop_it = 0;
+		  img_stable = 0;
 	      }
       swap_images();
-      if (stop_it)
+      if (img_stable)
 	return it;
     }
 
@@ -194,76 +194,94 @@ unsigned compute_v1 (unsigned nb_iter)
 
 ///////////////////////////// Version séquentielle tuilée optimisée
 
-int** suivant;
-int** courant;
+int** mvt_suivant;
+int** mvt_courant;
+int** bords_courant;
+int** bords_suivant;
 
 void init_v2()
 {
-  suivant = malloc(TILE_NUMBER*sizeof(int*));
-  courant = malloc(TILE_NUMBER*sizeof(int*));
+  mvt_suivant = malloc(TILE_NUMBER*sizeof(int*));
+  mvt_courant = malloc(TILE_NUMBER*sizeof(int*));
+  bords_suivant = malloc(TILE_NUMBER*sizeof(int*));
+  bords_courant = malloc(TILE_NUMBER*sizeof(int*));
   for (int y = 0; y < TILE_NUMBER; y++)
     {
-      suivant[y] = malloc(TILE_NUMBER*sizeof(int));
-      courant[y] = malloc(TILE_NUMBER*sizeof(int));
+      mvt_suivant[y] = malloc(TILE_NUMBER*sizeof(int));
+      mvt_courant[y] = malloc(TILE_NUMBER*sizeof(int));
+      bords_suivant[y] = malloc(TILE_NUMBER*sizeof(int));
+      bords_courant[y] = malloc(TILE_NUMBER*sizeof(int));
       for (int z = 0; z < TILE_NUMBER; z++)
 	{
-	  courant[y][z] = 0;
-	  suivant[y][z] = 0;
+	  mvt_courant[y][z] = 0;
+	  mvt_suivant[y][z] = 0;
+	  bords_courant[y][z] = 0;
+	  bords_suivant[y][z] = 0;
 	}
     }
 }
 
 unsigned compute_v2 (unsigned nb_iter) //ça marche pas !!!!
 {
-  int stop_it;
+  int img_stable;
+
   for (unsigned it = 1; it <= nb_iter; it ++)
     {
-      stop_it = 1;
+      img_stable = 1;
 
       for (int i = 0; i < TILE_NUMBER; i++)
 	for (int j = 0; j < TILE_NUMBER; j++)
 	  {
-	    if (courant[i][j] == 0 ||
-		(courant[i][j] == 1 &&
-		 ((i>0 && courant[i-1][j] == 0) ||
-		  (i>0 && j>0 && courant[i-1][j-1] == 0) ||
-		  (i>0 && j<TILE_NUMBER-1 && courant[i-1][j+1] == 0) ||
-		  (i<TILE_NUMBER-1 && courant[i+1][j] == 0) ||
-		  (i<TILE_NUMBER-1 && j>0 && courant[i+1][j-1] == 0) ||
-		  (i<TILE_NUMBER-1 && j<TILE_NUMBER-1 && courant[i+1][j+1] == 0) ||
-		  (j>0 && courant[i][j-1] == 0) ||
-		  (j<TILE_NUMBER-1 && courant[i][j+1] == 0))))
+	    if (mvt_courant[i][j] == 0 ||
+		(mvt_courant[i][j] == 1 &&
+		 ((i>0 && bords_courant[i-1][j] == 0) ||
+		  (i>0 && j>0 && bords_courant[i-1][j-1] == 0) ||
+		  (i>0 && j<TILE_NUMBER-1 && bords_courant[i-1][j+1] == 0) ||
+		  (i<TILE_NUMBER-1 && bords_courant[i+1][j] == 0) ||
+		  (i<TILE_NUMBER-1 && j>0 && bords_courant[i+1][j-1] == 0) ||
+		  (i<TILE_NUMBER-1 && j<TILE_NUMBER-1 && bords_courant[i+1][j+1] == 0) ||
+		  (j>0 && bords_courant[i][j-1] == 0) ||
+		  (j<TILE_NUMBER-1 && bords_courant[i][j+1] == 0))))
 	      {
 
-		int stop_tuile = 1;
+		int tuile_stable = 1;
+		int bords_stables = 1;
 		for(int iloc = i*TILE_SIZE; iloc < (i+1)*TILE_SIZE && iloc < DIM; iloc++)
 		  for(int jloc = j*TILE_SIZE; jloc < (j+1)*TILE_SIZE && jloc < DIM; jloc++)
 		    {
 		      int count = count_neighbours(iloc,jloc);
 		      int current_img = cur_img(iloc,jloc);
 		      if ((current_img && (count < 2 || count > 3)) || (current_img == 0 && (count != 3)))
-			next_img(iloc,jloc) = 0;
-		      else
-			next_img(iloc,jloc) = couleur;
-		      if (current_img != next_img(iloc,jloc))
 			{
-			  stop_it = 0;
-			  stop_tuile = 0;
+			  next_img(iloc,jloc) = 0;
+			  if (current_img != 0 && (iloc % TILE_SIZE == 0 || jloc % TILE_SIZE == 0 || (iloc+1) % TILE_SIZE == 0 || (jloc+1) % TILE_SIZE == 0)) bords_stables = 0;
 			}
+		      else
+			{
+			  next_img(iloc,jloc) = couleur;
+			  if (current_img == 0 && (iloc % TILE_SIZE == 0 || jloc % TILE_SIZE == 0 || (iloc+1) % TILE_SIZE == 0 || (jloc+1) % TILE_SIZE == 0)) bords_stables = 0;
+			}
+		      if (current_img != next_img(iloc,jloc))
+    			{
+    			  img_stable = 0;
+    			  tuile_stable = 0;
+    			}
 		    }
-		suivant[i][j] = stop_tuile;
-
+		mvt_suivant[i][j] = tuile_stable;
+		bords_suivant[i][j] = bords_stables;
 	      }
 	  }
+      if (img_stable)
+	return it;
       swap_images();
 
       int** tmp;
-      tmp = courant;
-      courant = suivant;
-      suivant = tmp;
-
-      if (stop_it)
-	return it;
+      tmp = mvt_courant;
+      mvt_courant = mvt_suivant;
+      mvt_suivant = tmp;
+      tmp = bords_courant;
+      bords_courant = bords_suivant;
+      bords_suivant = tmp;
     }
 
   // retourne le nombre d'étapes nécessaires à la
@@ -293,7 +311,7 @@ unsigned compute_v3(unsigned nb_iter)
 
   for (unsigned it = 1; it <= nb_iter; it ++)
     {
-      int stop_it = 1;
+      int img_stable = 1;
 #pragma omp parallel for collapse(2) schedule(static, 1)
       for (int i = 0; i < DIM; i++)
 	for (int j = 0; j < DIM; j++)
@@ -305,11 +323,11 @@ unsigned compute_v3(unsigned nb_iter)
 	    else
 	      next_img(i,j) = couleur;
 	    if (current_img != next_img(i,j))
-	      stop_it = 0;
+	      img_stable = 0;
 	  }
       swap_images();
 
-      if (stop_it)
+      if (img_stable)
 	{
 	  ret = it;
 	  it = nb_iter+1;
@@ -327,7 +345,7 @@ unsigned compute_v4(unsigned nb_iter)
 
   for (unsigned it = 1; it <= nb_iter; it ++)
     {
-      int stop_it = 1;
+      int img_stable = 1;
 #pragma omp parallel for collapse(2) schedule(static, 1)
       for (int i = 0; i < TILE_NUMBER; i++)
 	for (int j = 0; j < TILE_NUMBER; j++)
@@ -341,10 +359,10 @@ unsigned compute_v4(unsigned nb_iter)
 		else
 		  next_img(iloc,jloc) = couleur;
 		if (current_img != next_img(iloc,jloc))
-	  	  stop_it = 0;
+	  	  img_stable = 0;
 	      }
       swap_images();
-      if (stop_it)
+      if (img_stable)
 	return it;
     }
 
@@ -358,55 +376,63 @@ unsigned compute_v4(unsigned nb_iter)
 // Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
 unsigned compute_v5(unsigned nb_iter)
 {
-  int stop_it;
+  int img_stable;
   for (unsigned it = 1; it <= nb_iter; it ++)
     {
-      stop_it = 1;
+      img_stable = 1;
 #pragma omp parallel for collapse(2) schedule(static, 1)
       for (int i = 0; i < TILE_NUMBER; i++)
 	for (int j = 0; j < TILE_NUMBER; j++)
 	  {
-	    if (courant[i][j] == 0 ||
-		(courant[i][j] == 1 &&
-		 ((i>0 && courant[i-1][j] == 0) ||
-		  (i>0 && j>0 && courant[i-1][j-1] == 0) ||
-		  (i>0 && j<TILE_NUMBER-1 && courant[i-1][j+1] == 0) ||
-		  (i<TILE_NUMBER-1 && courant[i+1][j] == 0) ||
-		  (i<TILE_NUMBER-1 && j>0 && courant[i+1][j-1] == 0) ||
-		  (i<TILE_NUMBER-1 && j<TILE_NUMBER-1 && courant[i+1][j+1] == 0) ||
-		  (j>0 && courant[i][j-1] == 0) ||
-		  (j<TILE_NUMBER-1 && courant[i][j+1] == 0))))
+	    if (mvt_courant[i][j] == 0 ||
+		(mvt_courant[i][j] == 1 &&
+		 ((i>0 && bords_courant[i-1][j] == 0) ||
+		  (i>0 && j>0 && bords_courant[i-1][j-1] == 0) ||
+		  (i>0 && j<TILE_NUMBER-1 && bords_courant[i-1][j+1] == 0) ||
+		  (i<TILE_NUMBER-1 && bords_courant[i+1][j] == 0) ||
+		  (i<TILE_NUMBER-1 && j>0 && bords_courant[i+1][j-1] == 0) ||
+		  (i<TILE_NUMBER-1 && j<TILE_NUMBER-1 && bords_courant[i+1][j+1] == 0) ||
+		  (j>0 && bords_courant[i][j-1] == 0) ||
+		  (j<TILE_NUMBER-1 && bords_courant[i][j+1] == 0))))
 	      {
-		int stop_tuile = 1;
-	      	for(int iloc = i*TILE_SIZE; iloc < (i+1)*TILE_SIZE && iloc < DIM; iloc++)
-	      	  for(int jloc = j*TILE_SIZE; jloc < (j+1)*TILE_SIZE && jloc < DIM; jloc++)
-	      	    {
+		int tuile_stable = 1;
+		int bords_stables = 1;
+		for(int iloc = i*TILE_SIZE; iloc < (i+1)*TILE_SIZE && iloc < DIM; iloc++)
+		  for(int jloc = j*TILE_SIZE; jloc < (j+1)*TILE_SIZE && jloc < DIM; jloc++)
+		    {
 		      int count = count_neighbours(iloc,jloc);
 		      int current_img = cur_img(iloc,jloc);
 		      if ((current_img && (count < 2 || count > 3)) || (current_img == 0 && (count != 3)))
-			next_img(iloc,jloc) = 0;
+			{
+			  next_img(iloc,jloc) = 0;
+			  if (current_img != 0 && (iloc % TILE_SIZE == 0 || jloc % TILE_SIZE == 0 || (iloc+1) % TILE_SIZE == 0 || (jloc+1) % TILE_SIZE == 0)) bords_stables = 0;
+			}
 		      else
-			next_img(iloc,jloc) = couleur;
+			{
+			  next_img(iloc,jloc) = couleur;
+			  if (current_img == 0 && (iloc % TILE_SIZE == 0 || jloc % TILE_SIZE == 0 || (iloc+1) % TILE_SIZE == 0 || (jloc+1) % TILE_SIZE == 0)) bords_stables = 0;
+			}
 		      if (current_img != next_img(iloc,jloc))
-	      		{
-	      		  stop_it = 0;
-	      		  stop_tuile = 0;
-	      		}
-	      	    }
-	      	suivant[i][j] = stop_tuile;
-
+    			{
+    			  img_stable = 0;
+    			  tuile_stable = 0;
+    			}
+		    }
+		mvt_suivant[i][j] = tuile_stable;
+		bords_suivant[i][j] = bords_stables;
 	      }
 	  }
+      if (img_stable)
+	return it;
       swap_images();
 
       int** tmp;
-      tmp = courant;
-      courant = suivant;
-      suivant = tmp;
-
-
-      if (stop_it)
-	return it;
+      tmp = mvt_courant;
+      mvt_courant = mvt_suivant;
+      mvt_suivant = tmp;
+      tmp = bords_courant;
+      bords_courant = bords_suivant;
+      bords_suivant = tmp;
     }
 
   return 0; // on ne s'arrête jamais
@@ -422,8 +448,8 @@ unsigned compute_v6(unsigned nb_iter)
 
   for (unsigned it = 1; it <= nb_iter; it ++)
     {
-      int stop_it = 1;
-#pragma omp parallel shared(stop_it)
+      int img_stable = 1;
+#pragma omp parallel shared(img_stable)
       {
 #pragma omp single
 	for (int i = 0; i < DIM; i+=TILE_SIZE)
@@ -442,12 +468,12 @@ unsigned compute_v6(unsigned nb_iter)
 		      next_img(iloc,jloc) = couleur;
 
 		    if (current_img!=next_img(iloc,jloc))
-		      stop_it = 0;
+		      img_stable = 0;
 		  }
 	    }
       }
 
-      if (stop_it)
+      if (img_stable)
 	return it;
       swap_images();
     }
@@ -461,10 +487,10 @@ unsigned compute_v6(unsigned nb_iter)
 // Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
 unsigned compute_v7(unsigned nb_iter)
 {
-  int stop_it;
+  int img_stable;
   for (unsigned it = 1; it <= nb_iter; it ++)
     {
-      stop_it = 1;
+      img_stable = 1;
 #pragma omp parallel
 #pragma omp single
       {
@@ -472,48 +498,56 @@ unsigned compute_v7(unsigned nb_iter)
 	  for (int j = 0; j < TILE_NUMBER; j++)
 	    {
 #pragma omp task firstprivate(i,j)
-	      if (courant[i][j] == 0 ||
-		  (courant[i][j] == 1 &&
-		   ((i>0 && courant[i-1][j] == 0) ||
-		    (i>0 && j>0 && courant[i-1][j-1] == 0) ||
-		    (i>0 && j<TILE_NUMBER-1 && courant[i-1][j+1] == 0) ||
-		    (i<TILE_NUMBER-1 && courant[i+1][j] == 0) ||
-		    (i<TILE_NUMBER-1 && j>0 && courant[i+1][j-1] == 0) ||
-		    (i<TILE_NUMBER-1 && j<TILE_NUMBER-1 && courant[i+1][j+1] == 0) ||
-		    (j>0 && courant[i][j-1] == 0) ||
-		    (j<TILE_NUMBER-1 && courant[i][j+1] == 0))))
+	      if (mvt_courant[i][j] == 0 ||
+		  (mvt_courant[i][j] == 1 &&
+		   ((i>0 && bords_courant[i-1][j] == 0) ||
+		    (i>0 && j>0 && bords_courant[i-1][j-1] == 0) ||
+		    (i>0 && j<TILE_NUMBER-1 && bords_courant[i-1][j+1] == 0) ||
+		    (i<TILE_NUMBER-1 && bords_courant[i+1][j] == 0) ||
+		    (i<TILE_NUMBER-1 && j>0 && bords_courant[i+1][j-1] == 0) ||
+		    (i<TILE_NUMBER-1 && j<TILE_NUMBER-1 && bords_courant[i+1][j+1] == 0) ||
+		    (j>0 && bords_courant[i][j-1] == 0) ||
+		    (j<TILE_NUMBER-1 && bords_courant[i][j+1] == 0))))
 		{
-		  int stop_tuile = 1;
+		  int tuile_stable = 1;
+		  int bords_stables = 1;
 		  for(int iloc = i*TILE_SIZE; iloc < (i+1)*TILE_SIZE && iloc < DIM; iloc++)
 		    for(int jloc = j*TILE_SIZE; jloc < (j+1)*TILE_SIZE && jloc < DIM; jloc++)
 		      {
 			int count = count_neighbours(iloc,jloc);
 			int current_img = cur_img(iloc,jloc);
 			if ((current_img && (count < 2 || count > 3)) || (current_img == 0 && (count != 3)))
-			  next_img(iloc,jloc) = 0;
+			  {
+			    next_img(iloc,jloc) = 0;
+			    if (current_img != 0 && (iloc % TILE_SIZE == 0 || jloc % TILE_SIZE == 0 || (iloc+1) % TILE_SIZE == 0 || (jloc+1) % TILE_SIZE == 0)) bords_stables = 0;
+			  }
 			else
-			  next_img(iloc,jloc) = couleur;
+			  {
+			    next_img(iloc,jloc) = couleur;
+			    if (current_img == 0 && (iloc % TILE_SIZE == 0 || jloc % TILE_SIZE == 0 || (iloc+1) % TILE_SIZE == 0 || (jloc+1) % TILE_SIZE == 0)) bords_stables = 0;
+			  }
 			if (current_img != next_img(iloc,jloc))
 			  {
-			    stop_it = 0;
-			    stop_tuile = 0;
+			    img_stable = 0;
+			    tuile_stable = 0;
 			  }
 		      }
-		  suivant[i][j] = stop_tuile;
-
+		  mvt_suivant[i][j] = tuile_stable;
+		  bords_suivant[i][j] = bords_stables;
 		}
 	    }
       }
+      if (img_stable)
+	return it;
       swap_images();
 
       int** tmp;
-      tmp = courant;
-      courant = suivant;
-      suivant = tmp;
-
-
-      if (stop_it)
-	return it;
+      tmp = mvt_courant;
+      mvt_courant = mvt_suivant;
+      mvt_suivant = tmp;
+      tmp = bords_courant;
+      bords_courant = bords_suivant;
+      bords_suivant = tmp;
     }
 
   return 0; // on ne s'arrête jamais
