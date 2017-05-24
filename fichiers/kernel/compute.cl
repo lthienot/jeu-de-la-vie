@@ -57,7 +57,7 @@ __kernel void life_naif (__global unsigned* in, __global unsigned* out)
 }
 
 //jeu de la vie pas naif
-__kernel void life (__global unsigned* in, __global unsigned* out, __global unsigned* stop)
+__kernel void life (__global unsigned* in, __global unsigned* out)
 {
   __local unsigned tile [TILEY+2][TILEX+2];
    int x = get_global_id(0);
@@ -113,13 +113,10 @@ __kernel void life (__global unsigned* in, __global unsigned* out, __global unsi
      out[y*DIM+x] = 0;
    else
      out[y*DIM+x] = 0xFFFF00FF;
-  if (tile[yloc+1][xloc+1] != out[y*DIM+x])
-    stop[0] = 0;
-
 }
 
 //jeu de la vie pas naif
-__kernel void life_opt (__global unsigned* in, __global unsigned* out, __global unsigned* stop)
+__kernel void life_stop (__global unsigned* in, __global unsigned* out, __global unsigned* stop)
 {
   __local unsigned tile [TILEY+2][TILEX+2];
    int x = get_global_id(0);
@@ -177,7 +174,10 @@ __kernel void life_opt (__global unsigned* in, __global unsigned* out, __global 
      out[y*DIM+x] = 0xFFFF00FF;
   if (tile[yloc+1][xloc+1] != out[y*DIM+x])
     stop[0] = 0;
+
 }
+
+
 
 // NE PAS MODIFIER
 static unsigned color_mean (unsigned c1, unsigned c2)

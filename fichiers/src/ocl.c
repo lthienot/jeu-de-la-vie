@@ -282,6 +282,7 @@ void ocl_init (void)
     if (!stop_buffer)
       exit_with_error ("Failed to allocate stop buffer");
 
+
   printf ("Using %dx%d workitems grouped in %dx%d tiles \n", SIZE, SIZE, TILEX, TILEY);
 }
 
@@ -336,28 +337,17 @@ unsigned ocl_compute (unsigned nb_iter)
   size_t global[2] = { SIZE, SIZE };  // global domain size for our calculation
   size_t local[2]  = { TILEX, TILEY };  // local domain size for our calculation
   for (unsigned it = 1; it <= nb_iter; it ++) {
-    stop = 1;
-    err = clEnqueueWriteBuffer (queue, stop_buffer, CL_TRUE, 0,
-              sizeof (unsigned), &stop, 0, NULL, NULL);
-    check (err, "Failed to write to stop_buffer");
     // Set kernel arguments
     //
     err = 0;
     err  = clSetKernelArg (compute_kernel, 0, sizeof (cl_mem), &cur_buffer);
     err  = clSetKernelArg (compute_kernel, 1, sizeof (cl_mem), &next_buffer);
-    err  = clSetKernelArg (compute_kernel, 2, sizeof (cl_mem), &stop_buffer);
     check (err, "Failed to set kernel arguments");
 
     err = clEnqueueNDRangeKernel (queue, compute_kernel, 2, NULL, global, local,
 				  0, NULL, NULL);
     check(err, "Failed to execute kernel");
 
-    err = clEnqueueReadBuffer (queue, stop_buffer, CL_TRUE, 0,
-              sizeof (unsigned), &stop, 0, NULL, NULL);
-    check(err, "Failed to read stop buffer");
-
-    if (stop == 1)
-      return it;
     // Swap buffers
     { cl_mem tmp = cur_buffer; cur_buffer = next_buffer; next_buffer = tmp; }
 
@@ -366,7 +356,7 @@ unsigned ocl_compute (unsigned nb_iter)
   return 0;
 }
 
-unsigned ocl_compute_opt (unsigned nb_iter)
+unsigned ocl_compute_stop (unsigned nb_iter)
 {
   size_t global[2] = { SIZE, SIZE };  // global domain size for our calculation
   size_t local[2]  = { TILEX, TILEY };  // local domain size for our calculation

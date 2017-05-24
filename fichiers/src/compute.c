@@ -50,7 +50,7 @@ void_func_t init [] = {
   init_v2,
   NULL,
   NULL,
-  init_v2
+  NULL
 };
 
 
@@ -540,5 +540,5 @@ unsigned compute_v9 (unsigned nb_iter)
 // Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
 unsigned compute_v10 (unsigned nb_iter)
 {
-  return ocl_compute_opt(nb_iter);
+  return ocl_compute_stop(nb_iter);
 }
