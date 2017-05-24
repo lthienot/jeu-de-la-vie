@@ -50,7 +50,7 @@ void_func_t init [] = {
   init_v2,
   NULL,
   NULL,
-  NULL
+  init_v2
 };
 
 
@@ -194,21 +194,21 @@ unsigned compute_v1 (unsigned nb_iter)
 
 ///////////////////////////// Version séquentielle tuilée optimisée
 
-int** next;
+int** suivant;
 int** courant;
 
 void init_v2()
 {
-  next = malloc(TILE_NUMBER*sizeof(int*));
+  suivant = malloc(TILE_NUMBER*sizeof(int*));
   courant = malloc(TILE_NUMBER*sizeof(int*));
   for (int y = 0; y < TILE_NUMBER; y++)
     {
-      next[y] = malloc(TILE_NUMBER*sizeof(int));
+      suivant[y] = malloc(TILE_NUMBER*sizeof(int));
       courant[y] = malloc(TILE_NUMBER*sizeof(int));
       for (int z = 0; z < TILE_NUMBER; z++)
 	{
 	  courant[y][z] = 0;
-	  next[y][z] = 0;
+	  suivant[y][z] = 0;
 	}
     }
 }
@@ -251,7 +251,7 @@ unsigned compute_v2 (unsigned nb_iter) //ça marche pas !!!!
 			  stop_tuile = 0;
 			}
 		    }
-		next[i][j] = stop_tuile;
+		suivant[i][j] = stop_tuile;
 
 	      }
 	  }
@@ -259,8 +259,8 @@ unsigned compute_v2 (unsigned nb_iter) //ça marche pas !!!!
 
       int** tmp;
       tmp = courant;
-      courant = next;
-      next = tmp;
+      courant = suivant;
+      suivant = tmp;
 
       if (stop_it)
 	return it;
@@ -393,7 +393,7 @@ unsigned compute_v5(unsigned nb_iter)
 	      		  stop_tuile = 0;
 	      		}
 	      	    }
-	      	next[i][j] = stop_tuile;
+	      	suivant[i][j] = stop_tuile;
 
 	      }
 	  }
@@ -401,8 +401,8 @@ unsigned compute_v5(unsigned nb_iter)
 
       int** tmp;
       tmp = courant;
-      courant = next;
-      next = tmp;
+      courant = suivant;
+      suivant = tmp;
 
 
       if (stop_it)
@@ -499,7 +499,7 @@ unsigned compute_v7(unsigned nb_iter)
 			    stop_tuile = 0;
 			  }
 		      }
-		  next[i][j] = stop_tuile;
+		  suivant[i][j] = stop_tuile;
 
 		}
 	    }
@@ -508,8 +508,8 @@ unsigned compute_v7(unsigned nb_iter)
 
       int** tmp;
       tmp = courant;
-      courant = next;
-      next = tmp;
+      courant = suivant;
+      suivant = tmp;
 
 
       if (stop_it)
