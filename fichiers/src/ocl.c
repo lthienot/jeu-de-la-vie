@@ -38,6 +38,7 @@ unsigned SIZE = 0;
 static char *kernel_name = "transpose";
 
 cl_int err;
+cl_int stop;
 cl_context context;
 cl_kernel update_kernel;
 cl_kernel compute_kernel;
@@ -153,7 +154,7 @@ void ocl_init (void)
 
   if (platform_no >= nb_platforms)
     exit_with_error ("Platform number #%d too high\n", platform_no);
-    
+
   err = clGetPlatformInfo (pf [platform_no], CL_PLATFORM_NAME, 1024, name, NULL);
   check (err, "Failed to get Platform Info");
 
@@ -177,7 +178,7 @@ void ocl_init (void)
 
   err = clGetDeviceInfo (devices [dev], CL_DEVICE_NAME, 1024, name, NULL);
   check (err, "Cannot get type of device");
-    
+
   err = clGetDeviceInfo (devices [dev], CL_DEVICE_TYPE, sizeof (cl_device_type), &dtype, NULL);
   check (err, "Cannot get type of device");
 
@@ -203,9 +204,9 @@ void ocl_init (void)
     };
 #endif
 
-    context = clCreateContext (properties, 1, &devices [dev], NULL, NULL, &err); 
+    context = clCreateContext (properties, 1, &devices [dev], NULL, NULL, &err);
   } else
-    context = clCreateContext (NULL, 1, &devices [dev], NULL, NULL, &err); 
+    context = clCreateContext (NULL, 1, &devices [dev], NULL, NULL, &err);
 
   check (err, "Failed to create compute context");
 
@@ -255,7 +256,7 @@ void ocl_init (void)
   check (err, "Failed to create compute kernel");
 
   printf ("Using kernel: %s\n", kernel_name);
-  
+
   update_kernel = clCreateKernel (program, "update_texture", &err);
   check (err, "Failed to create compute kernel");
 
@@ -304,20 +305,22 @@ unsigned ocl_compute (unsigned nb_iter)
 {
   size_t global[2] = { SIZE, SIZE };  // global domain size for our calculation
   size_t local[2]  = { TILEX, TILEY };  // local domain size for our calculation
-
   for (unsigned it = 1; it <= nb_iter; it ++) {
-    
+    stop = 1;
     // Set kernel arguments
     //
     err = 0;
     err  = clSetKernelArg (compute_kernel, 0, sizeof (cl_mem), &cur_buffer);
     err  = clSetKernelArg (compute_kernel, 1, sizeof (cl_mem), &next_buffer);
+    err  = clSetKernelArg (compute_kernel, 2, sizeof (stop), &stop);
     check (err, "Failed to set kernel arguments");
 
     err = clEnqueueNDRangeKernel (queue, compute_kernel, 2, NULL, global, local,
 				  0, NULL, NULL);
     check(err, "Failed to execute kernel");
 
+    if (stop)
+      return it;
     // Swap buffers
     { cl_mem tmp = cur_buffer; cur_buffer = next_buffer; next_buffer = tmp; }
 

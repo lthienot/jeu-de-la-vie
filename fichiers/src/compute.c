@@ -282,7 +282,7 @@ unsigned compute_v3(unsigned nb_iter)
   for (unsigned it = 1; it <= nb_iter; it ++)
     {
       int stop_it = 1;
-#pragma omp parallel for collapse(2)
+#pragma omp parallel for collapse(2) schedule(static, 1)
       for (int i = 0; i < DIM; i++)
 	for (int j = 0; j < DIM; j++)
 	  {
@@ -316,7 +316,7 @@ unsigned compute_v4(unsigned nb_iter)
   for (unsigned it = 1; it <= nb_iter; it ++)
     {
       int stop_it = 1;
-#pragma omp parallel for collapse(2)
+#pragma omp parallel for collapse(2) schedule(static, 1)
       for (int i = 0; i < TILE_NUMBER; i++)
 	for (int j = 0; j < TILE_NUMBER; j++)
 	  for(int iloc = i*TILE_SIZE; iloc < (i+1)*TILE_SIZE && iloc < DIM; iloc++)
@@ -350,7 +350,7 @@ unsigned compute_v5(unsigned nb_iter)
   for (unsigned it = 1; it <= nb_iter; it ++)
     {
       stop_it = 1;
-#pragma omp parallel for collapse(2)
+#pragma omp parallel for collapse(2) schedule(static, 1)
       for (int i = 0; i < TILE_NUMBER; i++)
 	for (int j = 0; j < TILE_NUMBER; j++)
 	  {
