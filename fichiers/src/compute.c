@@ -22,7 +22,9 @@ unsigned compute_v5 (unsigned nb_iter);
 unsigned compute_v6 (unsigned nb_iter);
 unsigned compute_v7 (unsigned nb_iter);
 unsigned compute_v8 (unsigned nb_iter);
-  
+unsigned compute_v9 (unsigned nb_iter);
+unsigned compute_v10 (unsigned nb_iter);
+
 void_func_t first_touch [] = {
   NULL,
   NULL,
@@ -33,6 +35,8 @@ void_func_t first_touch [] = {
   first_touch_v3,
   first_touch_v3,
   NULL,
+  NULL,
+  NULL
 };
 
 void_func_t init [] = {
@@ -45,6 +49,8 @@ void_func_t init [] = {
   NULL,
   init_v2,
   NULL,
+  NULL,
+  NULL
 };
 
 
@@ -58,6 +64,8 @@ int_func_t compute [] = {
   compute_v6,
   compute_v7,
   compute_v8,
+  compute_v9,
+  compute_v10
 };
 
 char *version_name [] = {
@@ -69,7 +77,9 @@ char *version_name [] = {
   "OpenMP optimisée (for)",
   "OpenMP tuilée (task)",
   "OpenMP optimisée (task)",
-  "OpenCL",
+  "OpenCL naïve",
+  "OpenCL optimisée",
+  "OpenCL très optimisée"
 };
 
 unsigned opencl_used [] = {
@@ -81,6 +91,8 @@ unsigned opencl_used [] = {
   0,
   0,
   0,
+  1,
+  1,
   1
 };
 
@@ -116,7 +128,7 @@ unsigned compute_v0 (unsigned nb_iter)
   /*   for (int i = 0; i < DIM; i++) */
   /*     for (int j = 0; j < DIM; j++) */
   /* 	next_img (i, j) = cur_img (j, i); */
-    
+
   /*   swap_images (); */
   /* } */
   for (unsigned it = 1; it <= nb_iter; it ++)
@@ -173,7 +185,7 @@ unsigned compute_v1 (unsigned nb_iter)
       if (stop_it)
 	return it;
     }
-  
+
   // retourne le nombre d'étapes nécessaires à la
   // stabilisation du calcul ou bien 0 si le calcul n'est pas
   // stabilisé au bout des nb_iter itérations
@@ -207,7 +219,7 @@ unsigned compute_v2 (unsigned nb_iter) //ça marche pas !!!!
   for (unsigned it = 1; it <= nb_iter; it ++)
     {
       stop_it = 1;
-      
+
       for (int i = 0; i < TILE_NUMBER; i++)
 	for (int j = 0; j < TILE_NUMBER; j++)
 	  {
@@ -240,20 +252,20 @@ unsigned compute_v2 (unsigned nb_iter) //ça marche pas !!!!
 			}
 		    }
 		next[i][j] = stop_tuile;
-	      
+
 	      }
 	  }
       swap_images();
-  
+
       int** tmp;
       tmp = courant;
       courant = next;
-      next = tmp; 
-       
+      next = tmp;
+
       if (stop_it)
 	return it;
     }
-  
+
   // retourne le nombre d'étapes nécessaires à la
   // stabilisation du calcul ou bien 0 si le calcul n'est pas
   // stabilisé au bout des nb_iter itérations
@@ -335,7 +347,7 @@ unsigned compute_v4(unsigned nb_iter)
       if (stop_it)
 	return it;
     }
-  
+
   return 0; // on ne s'arrête jamais
 }
 
@@ -382,21 +394,21 @@ unsigned compute_v5(unsigned nb_iter)
 	      		}
 	      	    }
 	      	next[i][j] = stop_tuile;
-	      
+
 	      }
 	  }
       swap_images();
-  
+
       int** tmp;
       tmp = courant;
       courant = next;
-      next = tmp; 
-      
-      
+      next = tmp;
+
+
       if (stop_it)
 	return it;
     }
-  
+
   return 0; // on ne s'arrête jamais
 }
 
@@ -428,7 +440,7 @@ unsigned compute_v6(unsigned nb_iter)
 		      next_img(iloc,jloc) = 0;
 		    else
 		      next_img(iloc,jloc) = couleur;
-		
+
 		    if (current_img!=next_img(iloc,jloc))
 		      stop_it = 0;
 		  }
@@ -488,29 +500,45 @@ unsigned compute_v7(unsigned nb_iter)
 			  }
 		      }
 		  next[i][j] = stop_tuile;
-	      
+
 		}
 	    }
       }
       swap_images();
-      
+
       int** tmp;
       tmp = courant;
       courant = next;
-      next = tmp; 
-      
-      
+      next = tmp;
+
+
       if (stop_it)
 	return it;
     }
-  
+
   return 0; // on ne s'arrête jamais
+}
+
+///////////////////////////// Version OpenCL naive
+
+// Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
+unsigned compute_v8 (unsigned nb_iter)
+{
+  return ocl_compute_naif(nb_iter);
 }
 
 ///////////////////////////// Version OpenCL
 
 // Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
-unsigned compute_v8 (unsigned nb_iter)
+unsigned compute_v9 (unsigned nb_iter)
 {
-  return ocl_compute (nb_iter);
+  return ocl_compute(nb_iter);
+}
+
+///////////////////////////// Version OpenCL Optimisée
+
+// Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
+unsigned compute_v10 (unsigned nb_iter)
+{
+  return ocl_compute_opt(nb_iter);
 }

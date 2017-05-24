@@ -7,7 +7,9 @@
 void ocl_init (void);
 void ocl_map_textures (GLuint texid);
 void ocl_send_image (unsigned *image);
+unsigned ocl_compute_naif (unsigned nb_iter);
 unsigned ocl_compute (unsigned nb_iter);
+unsigned ocl_compute_opt (unsigned nb_iter);
 void ocl_wait (void);
 void ocl_update_texture (void);
 

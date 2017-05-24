@@ -43,7 +43,7 @@ cl_context context;
 cl_kernel update_kernel;
 cl_kernel compute_kernel;
 cl_command_queue queue;
-cl_mem tex_buffer, cur_buffer, next_buffer;
+cl_mem tex_buffer, cur_buffer, next_buffer, stop_buffer;
 
 static size_t file_size (const char *filename)
 {
@@ -277,6 +277,11 @@ void ocl_init (void)
   if (!next_buffer)
     exit_with_error ("Failed to allocate output buffer");
 
+    stop_buffer = clCreateBuffer (context, CL_MEM_READ_WRITE, sizeof(unsigned),
+  			       NULL, NULL);
+    if (!stop_buffer)
+      exit_with_error ("Failed to allocate stop buffer");
+
   printf ("Using %dx%d workitems grouped in %dx%d tiles \n", SIZE, SIZE, TILEX, TILEY);
 }
 
@@ -301,25 +306,92 @@ void ocl_send_image (unsigned *image)
   PRINT_DEBUG ('o', "Initial image sent to device.\n");
 }
 
-unsigned ocl_compute (unsigned nb_iter)
+unsigned ocl_compute_naif (unsigned nb_iter)
 {
   size_t global[2] = { SIZE, SIZE };  // global domain size for our calculation
   size_t local[2]  = { TILEX, TILEY };  // local domain size for our calculation
   for (unsigned it = 1; it <= nb_iter; it ++) {
-    stop = 1;
     // Set kernel arguments
     //
     err = 0;
     err  = clSetKernelArg (compute_kernel, 0, sizeof (cl_mem), &cur_buffer);
     err  = clSetKernelArg (compute_kernel, 1, sizeof (cl_mem), &next_buffer);
-    err  = clSetKernelArg (compute_kernel, 2, sizeof (stop), &stop);
+    // err  = clSetKernelArg (compute_kernel, 2, sizeof (stop), &stop);
     check (err, "Failed to set kernel arguments");
 
     err = clEnqueueNDRangeKernel (queue, compute_kernel, 2, NULL, global, local,
 				  0, NULL, NULL);
     check(err, "Failed to execute kernel");
 
-    if (stop)
+    // Swap buffers
+    { cl_mem tmp = cur_buffer; cur_buffer = next_buffer; next_buffer = tmp; }
+
+  }
+
+  return 0;
+}
+
+unsigned ocl_compute (unsigned nb_iter)
+{
+  size_t global[2] = { SIZE, SIZE };  // global domain size for our calculation
+  size_t local[2]  = { TILEX, TILEY };  // local domain size for our calculation
+  for (unsigned it = 1; it <= nb_iter; it ++) {
+    stop = 1;
+    err = clEnqueueWriteBuffer (queue, stop_buffer, CL_TRUE, 0,
+              sizeof (unsigned), &stop, 0, NULL, NULL);
+    check (err, "Failed to write to stop_buffer");
+    // Set kernel arguments
+    //
+    err = 0;
+    err  = clSetKernelArg (compute_kernel, 0, sizeof (cl_mem), &cur_buffer);
+    err  = clSetKernelArg (compute_kernel, 1, sizeof (cl_mem), &next_buffer);
+    err  = clSetKernelArg (compute_kernel, 2, sizeof (cl_mem), &stop_buffer);
+    check (err, "Failed to set kernel arguments");
+
+    err = clEnqueueNDRangeKernel (queue, compute_kernel, 2, NULL, global, local,
+				  0, NULL, NULL);
+    check(err, "Failed to execute kernel");
+
+    err = clEnqueueReadBuffer (queue, stop_buffer, CL_TRUE, 0,
+              sizeof (unsigned), &stop, 0, NULL, NULL);
+    check(err, "Failed to read stop buffer");
+
+    if (stop == 1)
+      return it;
+    // Swap buffers
+    { cl_mem tmp = cur_buffer; cur_buffer = next_buffer; next_buffer = tmp; }
+
+  }
+
+  return 0;
+}
+
+unsigned ocl_compute_opt (unsigned nb_iter)
+{
+  size_t global[2] = { SIZE, SIZE };  // global domain size for our calculation
+  size_t local[2]  = { TILEX, TILEY };  // local domain size for our calculation
+  for (unsigned it = 1; it <= nb_iter; it ++) {
+    stop = 1;
+    err = clEnqueueWriteBuffer (queue, stop_buffer, CL_TRUE, 0,
+              sizeof (unsigned), &stop, 0, NULL, NULL);
+    check (err, "Failed to write to stop_buffer");
+    // Set kernel arguments
+    //
+    err = 0;
+    err  = clSetKernelArg (compute_kernel, 0, sizeof (cl_mem), &cur_buffer);
+    err  = clSetKernelArg (compute_kernel, 1, sizeof (cl_mem), &next_buffer);
+    err  = clSetKernelArg (compute_kernel, 2, sizeof (cl_mem), &stop_buffer);
+    check (err, "Failed to set kernel arguments");
+
+    err = clEnqueueNDRangeKernel (queue, compute_kernel, 2, NULL, global, local,
+				  0, NULL, NULL);
+    check(err, "Failed to execute kernel");
+
+    err = clEnqueueReadBuffer (queue, stop_buffer, CL_TRUE, 0,
+              sizeof (unsigned), &stop, 0, NULL, NULL);
+    check(err, "Failed to read stop buffer");
+
+    if (stop == 1)
       return it;
     // Swap buffers
     { cl_mem tmp = cur_buffer; cur_buffer = next_buffer; next_buffer = tmp; }

@@ -57,64 +57,126 @@ __kernel void life_naif (__global unsigned* in, __global unsigned* out)
 }
 
 //jeu de la vie pas naif
-__kernel void life (__global unsigned* in, __global unsigned* out, __global int* stop)
+__kernel void life (__global unsigned* in, __global unsigned* out, __global unsigned* stop)
 {
-__local unsigned tile [TILEY+2][TILEX+2];
- int x = get_global_id(0);
- int y = get_global_id(1);
- int xloc = get_local_id(0);
- int yloc = get_local_id(1);
- int count = 0; //nb de voisins vivants
+  __local unsigned tile [TILEY+2][TILEX+2];
+   int x = get_global_id(0);
+   int y = get_global_id(1);
+   int xloc = get_local_id(0);
+   int yloc = get_local_id(1);
+   int count = 0; //nb de voisins vivants
 
-/* remplissage de la tuile */
- tile[yloc+1][xloc+1] = in[y * DIM + x];
- if (xloc == 0 && x > 0) // bord gauche
-    tile[yloc + 1][xloc] = in[y * DIM + x - 1];
- if (yloc == 0 && y > 0) //haut
-    tile[yloc][xloc + 1] = in[(y - 1) * DIM + x];
- if (xloc == TILEX - 1 && x < DIM-1) //bord droit
-    tile[yloc+1][TILEX + 1] = in[y * DIM + x + 1];
- if (yloc == TILEY-1 && y < DIM-1) //bas
-    tile[TILEY + 1][xloc+1] = in[(y + 1) * DIM + x];
-  if (xloc == 0 && x > 0 && yloc == 0 && y > 0) //coin haut gauche
-    tile[yloc][xloc] = in[(y-1) * DIM + x - 1];
-  if (xloc == 0 && x > 0 && yloc == TILEY-1 && y < DIM-1) //coin bas gauche
-    tile[TILEY + 1][xloc] = in[(y+1) * DIM + x - 1];
-  if (xloc == TILEX-1 && x < DIM-1 && yloc == 0 && y > 0) //coin haut droit
-    tile[yloc][TILEX+1] = in[(y-1) * DIM + x + 1];
-  if (xloc == TILEX-1 && x < DIM-1 && yloc == TILEY-1 && y < DIM-1) //coin bas droit
-    tile[TILEY + 1][TILEX+1] = in[(y+1) * DIM + x + 1];
+  /* remplissage de la tuile */
+   tile[yloc+1][xloc+1] = in[y * DIM + x];
+   if (xloc == 0 && x > 0) // bord gauche
+      tile[yloc + 1][xloc] = in[y * DIM + x - 1];
+   if (yloc == 0 && y > 0) //haut
+      tile[yloc][xloc + 1] = in[(y - 1) * DIM + x];
+   if (xloc == TILEX - 1 && x < DIM-1) //bord droit
+      tile[yloc+1][TILEX + 1] = in[y * DIM + x + 1];
+   if (yloc == TILEY-1 && y < DIM-1) //bas
+      tile[TILEY + 1][xloc+1] = in[(y + 1) * DIM + x];
+    if (xloc == 0 && x > 0 && yloc == 0 && y > 0) //coin haut gauche
+      tile[yloc][xloc] = in[(y-1) * DIM + x - 1];
+    if (xloc == 0 && x > 0 && yloc == TILEY-1 && y < DIM-1) //coin bas gauche
+      tile[TILEY + 1][xloc] = in[(y+1) * DIM + x - 1];
+    if (xloc == TILEX-1 && x < DIM-1 && yloc == 0 && y > 0) //coin haut droit
+      tile[yloc][TILEX+1] = in[(y-1) * DIM + x + 1];
+    if (xloc == TILEX-1 && x < DIM-1 && yloc == TILEY-1 && y < DIM-1) //coin bas droit
+      tile[TILEY + 1][TILEX+1] = in[(y+1) * DIM + x + 1];
 
- barrier(CLK_LOCAL_MEM_FENCE);
+   barrier(CLK_LOCAL_MEM_FENCE);
 
-/* decompte du nb de voisins vivants */
- if (x > 0 && x < DIM - 1 && y > 0 && y < DIM - 1)
- {
- if(tile[yloc][xloc])
-   count++;
- if(tile[yloc][xloc+1])
-   count++;
- if(tile[yloc][xloc+2])
-   count++;
- if(tile[yloc+1][xloc])
-   count++;
- if(tile[yloc+1][xloc+2])
-   count++;
- if(tile[yloc+2][xloc])
-   count++;
- if(tile[yloc+2][xloc+1])
-   count++;
- if(tile[yloc+2][xloc+2])
-   count++;
- }
+  /* decompte du nb de voisins vivants */
+   if (x > 0 && x < DIM - 1 && y > 0 && y < DIM - 1)
+   {
+     if(tile[yloc][xloc])
+       count++;
+     if(tile[yloc][xloc+1])
+       count++;
+     if(tile[yloc][xloc+2])
+       count++;
+     if(tile[yloc+1][xloc])
+       count++;
+     if(tile[yloc+1][xloc+2])
+       count++;
+     if(tile[yloc+2][xloc])
+       count++;
+     if(tile[yloc+2][xloc+1])
+       count++;
+     if(tile[yloc+2][xloc+2])
+       count++;
+   }
 
- /*on decide si on meurt ou on vit*/
- if ((tile[yloc+1][xloc+1] && (count < 2 || count > 3)) || (tile[yloc+1][xloc+1] == 0 && (count !=3)))
-   out[y*DIM+x] = 0;
- else
-   out[y*DIM+x] = 0xFFFF00FF;
-if (tile[yloc+1][xloc+1] != out[y*DIM+x])
-  *stop = 0;
+   /*on decide si on meurt ou on vit*/
+   if ((tile[yloc+1][xloc+1] && (count < 2 || count > 3)) || (tile[yloc+1][xloc+1] == 0 && (count !=3)))
+     out[y*DIM+x] = 0;
+   else
+     out[y*DIM+x] = 0xFFFF00FF;
+  if (tile[yloc+1][xloc+1] != out[y*DIM+x])
+    stop[0] = 0;
+
+}
+
+//jeu de la vie pas naif
+__kernel void life_opt (__global unsigned* in, __global unsigned* out, __global unsigned* stop)
+{
+  __local unsigned tile [TILEY+2][TILEX+2];
+   int x = get_global_id(0);
+   int y = get_global_id(1);
+   int xloc = get_local_id(0);
+   int yloc = get_local_id(1);
+   int count = 0; //nb de voisins vivants
+
+  /* remplissage de la tuile */
+   tile[yloc+1][xloc+1] = in[y * DIM + x];
+   if (xloc == 0 && x > 0) // bord gauche
+      tile[yloc + 1][xloc] = in[y * DIM + x - 1];
+   if (yloc == 0 && y > 0) //haut
+      tile[yloc][xloc + 1] = in[(y - 1) * DIM + x];
+   if (xloc == TILEX - 1 && x < DIM-1) //bord droit
+      tile[yloc+1][TILEX + 1] = in[y * DIM + x + 1];
+   if (yloc == TILEY-1 && y < DIM-1) //bas
+      tile[TILEY + 1][xloc+1] = in[(y + 1) * DIM + x];
+    if (xloc == 0 && x > 0 && yloc == 0 && y > 0) //coin haut gauche
+      tile[yloc][xloc] = in[(y-1) * DIM + x - 1];
+    if (xloc == 0 && x > 0 && yloc == TILEY-1 && y < DIM-1) //coin bas gauche
+      tile[TILEY + 1][xloc] = in[(y+1) * DIM + x - 1];
+    if (xloc == TILEX-1 && x < DIM-1 && yloc == 0 && y > 0) //coin haut droit
+      tile[yloc][TILEX+1] = in[(y-1) * DIM + x + 1];
+    if (xloc == TILEX-1 && x < DIM-1 && yloc == TILEY-1 && y < DIM-1) //coin bas droit
+      tile[TILEY + 1][TILEX+1] = in[(y+1) * DIM + x + 1];
+
+   barrier(CLK_LOCAL_MEM_FENCE);
+
+  /* decompte du nb de voisins vivants */
+   if (x > 0 && x < DIM - 1 && y > 0 && y < DIM - 1)
+   {
+     if(tile[yloc][xloc])
+       count++;
+     if(tile[yloc][xloc+1])
+       count++;
+     if(tile[yloc][xloc+2])
+       count++;
+     if(tile[yloc+1][xloc])
+       count++;
+     if(tile[yloc+1][xloc+2])
+       count++;
+     if(tile[yloc+2][xloc])
+       count++;
+     if(tile[yloc+2][xloc+1])
+       count++;
+     if(tile[yloc+2][xloc+2])
+       count++;
+   }
+
+   /*on decide si on meurt ou on vit*/
+   if ((tile[yloc+1][xloc+1] && (count < 2 || count > 3)) || (tile[yloc+1][xloc+1] == 0 && (count !=3)))
+     out[y*DIM+x] = 0;
+   else
+     out[y*DIM+x] = 0xFFFF00FF;
+  if (tile[yloc+1][xloc+1] != out[y*DIM+x])
+    stop[0] = 0;
 }
 
 // NE PAS MODIFIER
