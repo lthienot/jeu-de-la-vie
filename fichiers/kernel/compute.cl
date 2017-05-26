@@ -90,22 +90,14 @@ __kernel void life (__global unsigned* in, __global unsigned* out)
   /* decompte du nb de voisins vivants */
    if (x > 0 && x < DIM - 1 && y > 0 && y < DIM - 1)
    {
-     if(tile[yloc][xloc])
-       count++;
-     if(tile[yloc][xloc+1])
-       count++;
-     if(tile[yloc][xloc+2])
-       count++;
-     if(tile[yloc+1][xloc])
-       count++;
-     if(tile[yloc+1][xloc+2])
-       count++;
-     if(tile[yloc+2][xloc])
-       count++;
-     if(tile[yloc+2][xloc+1])
-       count++;
-     if(tile[yloc+2][xloc+2])
-       count++;
+	count +=(tile[yloc][xloc]!=0)
+   	    	+(tile[yloc][xloc+1]!=0)
+	    	+(tile[yloc][xloc+2]!=0)
+	    	+(tile[yloc+1][xloc]!=0)
+	    	+(tile[yloc+1][xloc+2]!=0)
+	    	+(tile[yloc+2][xloc]!=0)
+	    	+(tile[yloc+2][xloc+1]!=0)
+	    	+(tile[yloc+2][xloc+2]!=0);
    }
 
    /*on decide si on meurt ou on vit*/
