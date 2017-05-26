@@ -69,21 +69,21 @@ __kernel void life (__global unsigned* in, __global unsigned* out)
   /* remplissage de la tuile */
    tile[yloc+1][xloc+1] = in[y * DIM + x];
    if (xloc == 0 && x > 0) // bord gauche
-      tile[yloc + 1][xloc] = in[y * DIM + x - 1];
+      tile[yloc + 1][0] = in[y * DIM + x - 1];
    if (yloc == 0 && y > 0) //haut
-      tile[yloc][xloc + 1] = in[(y - 1) * DIM + x];
+      tile[0][xloc + 1] = in[(y - 1) * DIM + x];
    if (xloc == TILEX - 1 && x < DIM-1) //bord droit
       tile[yloc+1][TILEX + 1] = in[y * DIM + x + 1];
    if (yloc == TILEY-1 && y < DIM-1) //bas
       tile[TILEY + 1][xloc+1] = in[(y + 1) * DIM + x];
     if (xloc == 0 && x > 0 && yloc == 0 && y > 0) //coin haut gauche
-      tile[yloc][xloc] = in[(y-1) * DIM + x - 1];
+      tile[0][0] = in[(y-1) * DIM + x - 1];
     if (xloc == 0 && x > 0 && yloc == TILEY-1 && y < DIM-1) //coin bas gauche
-      tile[TILEY + 1][xloc] = in[(y+1) * DIM + x - 1];
+      tile[TILEY + 1][0] = in[(y+1) * DIM + x - 1];
     if (xloc == TILEX-1 && x < DIM-1 && yloc == 0 && y > 0) //coin haut droit
-      tile[yloc][TILEX+1] = in[(y-1) * DIM + x + 1];
+      tile[0][TILEX+1] = in[(y-1) * DIM + x + 1];
     if (xloc == TILEX-1 && x < DIM-1 && yloc == TILEY-1 && y < DIM-1) //coin bas droit
-      tile[TILEY + 1][TILEX+1] = in[(y+1) * DIM + x + 1];
+      tile[TILEY+1][TILEX+1] = in[(y+1) * DIM + x + 1];
 
    barrier(CLK_LOCAL_MEM_FENCE);
 
