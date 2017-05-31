@@ -31,8 +31,8 @@
 #define MAX_PLATFORMS 3
 #define MAX_DEVICES   5
 
-unsigned TILEX = 16;
-unsigned TILEY = 16;
+unsigned TILEX = 32;
+unsigned TILEY = 32;
 unsigned SIZE = 0;
 
 static char *kernel_name = "life";

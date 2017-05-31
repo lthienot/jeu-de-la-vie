@@ -159,7 +159,7 @@ unsigned compute_v0 (unsigned nb_iter)
 
 ///////////////////////////// Version séquentielle tuilée
 
-#define TILE_SIZE 32
+#define TILE_SIZE 64
 #define TILE_NUMBER DIM/TILE_SIZE
 
 unsigned compute_v1 (unsigned nb_iter)
